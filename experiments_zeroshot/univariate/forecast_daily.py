@@ -141,7 +141,7 @@ def plot_results(df, close_prices_train, forecast, actual_prices, test_dates):
 
     # Plot actual test data (ground truth)
     ax.plot(test_dates, actual_prices, label='Actual (Test Period)',
-            color='orange', linewidth=2, marker='o', markersize=6)
+            color='darkblue', linewidth=2.5, marker='D', markersize=7)
 
     # Determine forecast direction (compare first forecast with last historical value)
     median_idx = QUANTILE_LEVELS.index(0.5)

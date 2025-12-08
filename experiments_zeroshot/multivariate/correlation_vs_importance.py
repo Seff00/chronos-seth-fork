@@ -214,7 +214,7 @@ def main():
     ax6.axhline(y=0, color='black', linestyle='--', linewidth=1)
 
     plt.tight_layout()
-    output_path = 'experiments/multivariate/correlation_vs_importance_analysis.png'
+    output_path = 'experiments_zeroshot/multivariate/correlation_vs_importance_analysis.png'
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"\nPlots saved to: {output_path}")
     plt.show()
