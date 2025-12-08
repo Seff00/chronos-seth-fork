@@ -1,0 +1,70 @@
+Test period: 2025-11-26 to 2025-12-05
+
+Loading Chronos-2 model: amazon/chronos-2
+`torch_dtype` is deprecated! Use `dtype` instead!
+`torch_dtype` is deprecated! Use `dtype` instead!
+
+================================================================================
+Running Ablation Experiments...
+================================================================================
+
+Baseline (No Covariates)...
+  Config: None (univariate)
+  RMSE: $1.6364, MAE: $1.6214, MAPE: 2.59%
+
+All Covariates...
+  Config: {'crude_oil': True, 'copper': True, 'calendar': True}
+  RMSE: $1.0362, MAE: $1.0143, MAPE: 1.62%
+
+Crude Oil Only...
+  Config: {'crude_oil': True}
+  RMSE: $1.3380, MAE: $1.3000, MAPE: 2.07%
+
+Copper Only...
+  Config: {'copper': True}
+  RMSE: $0.8351, MAE: $0.8000, MAPE: 1.28%
+
+Calendar Only...
+  Config: {'calendar': True}
+  RMSE: $1.4230, MAE: $1.4071, MAPE: 2.25%
+
+Crude + Calendar...
+  Config: {'crude_oil': True, 'calendar': True}
+  RMSE: $1.2459, MAE: $1.2286, MAPE: 1.96%
+
+Copper + Calendar...
+  Config: {'copper': True, 'calendar': True}
+  RMSE: $1.0468, MAE: $1.0143, MAPE: 1.62%
+
+Crude + Copper...
+  Config: {'crude_oil': True, 'copper': True}
+  RMSE: $0.7932, MAE: $0.7643, MAPE: 1.22%
+
+================================================================================
+COVARIATE IMPORTANCE SUMMARY
+================================================================================
+Experiment                     RMSE         MAE          MAPE
+--------------------------------------------------------------------------------
+Crude + Copper                 $0.7932      $0.7643      1.22       %
+Copper Only                    $0.8351      $0.8000      1.28       %
+All Covariates                 $1.0362      $1.0143      1.62       %
+Copper + Calendar              $1.0468      $1.0143      1.62       %
+Crude + Calendar               $1.2459      $1.2286      1.96       %
+Crude Oil Only                 $1.3380      $1.3000      2.07       %
+Calendar Only                  $1.4230      $1.4071      2.25       %
+Baseline (No Covariates)       $1.6364      $1.6214      2.59       %
+================================================================================
+
+================================================================================
+FEATURE IMPORTANCE (based on RMSE degradation)
+================================================================================
+Baseline RMSE (no covariates):     $1.6364
+All Covariates RMSE:               $1.0362
+Improvement from covariates:       $0.6001 (36.7%)
+
+Copper          - RMSE increase when removed: $0.2097 ⚠️ (Important!)
+Crude Oil       - RMSE increase when removed: $0.0106 ⚠️ (Important!)
+Calendar        - RMSE increase when removed: $-0.2431 (Negligible)
+================================================================================
+
+Plot saved to: experiments/multivariate/covariate_importance_analysis.png

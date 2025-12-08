@@ -153,9 +153,6 @@ def main():
         'Crude + Calendar': {'crude_oil': True, 'calendar': True},
         'Copper + Calendar': {'copper': True, 'calendar': True},
         'Crude + Copper': {'crude_oil': True, 'copper': True},
-        'No Crude Oil': {'copper': True, 'calendar': True},
-        'No Copper': {'crude_oil': True, 'calendar': True},
-        'No Calendar': {'crude_oil': True, 'copper': True},
     }
 
     results = {}
@@ -198,18 +195,22 @@ def main():
     all_rmse = results['All Covariates']['rmse']
 
     # Individual importance: degradation when removing from "All Covariates"
+    # Compare "All Covariates" vs combinations without each feature
     importance_scores = {}
 
-    if 'No Crude Oil' in results:
-        crude_impact = results['No Crude Oil']['rmse'] - all_rmse
+    # Crude Oil importance: compare (All) vs (Copper + Calendar)
+    if 'Copper + Calendar' in results:
+        crude_impact = results['Copper + Calendar']['rmse'] - all_rmse
         importance_scores['Crude Oil'] = crude_impact
 
-    if 'No Copper' in results:
-        copper_impact = results['No Copper']['rmse'] - all_rmse
+    # Copper importance: compare (All) vs (Crude + Calendar)
+    if 'Crude + Calendar' in results:
+        copper_impact = results['Crude + Calendar']['rmse'] - all_rmse
         importance_scores['Copper'] = copper_impact
 
-    if 'No Calendar' in results:
-        calendar_impact = results['No Calendar']['rmse'] - all_rmse
+    # Calendar importance: compare (All) vs (Crude + Copper)
+    if 'Crude + Copper' in results:
+        calendar_impact = results['Crude + Copper']['rmse'] - all_rmse
         importance_scores['Calendar'] = calendar_impact
 
     print(f"Baseline RMSE (no covariates):     ${baseline_rmse:.4f}")

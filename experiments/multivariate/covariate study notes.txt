@@ -1,0 +1,10 @@
+correlation =/= feature importance.
+
+might be good to measure importance across various or longer time steps
+
+the covariate importance analysis 1 is a naïve way to measure feature importance,
+only on the latest 7 days, which could be noisy,
+and thus does not fully reflect the entire dataset.
+
+
+
