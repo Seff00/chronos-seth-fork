@@ -222,7 +222,7 @@ def plot_results(weekly_df, weekly_prices_train, forecast, actual_prices, test_d
     plt.tight_layout()
 
     # Save plot
-    output_path = 'experiments/cotton_forecast_weekly_plot.png'
+    output_path = 'experiments/univariate/cotton_forecast_weekly_plot.png'
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"\nPlot saved to: {output_path}")
 
