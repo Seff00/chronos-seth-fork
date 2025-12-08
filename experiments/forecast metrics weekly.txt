@@ -1,0 +1,72 @@
+================================================================================
+Cotton Futures Zero-Shot Forecasting with Chronos-2 (WEEKLY AGGREGATION)
+Evaluation Mode: Predicting on Last 4 Weeks (Holdout)
+================================================================================
+Loaded 2771 daily data points
+Date range: 2014-12-01 00:00:00 to 2025-12-05 00:00:00
+
+After weekly aggregation: 575 weeks
+Date range: 2014-12-05 00:00:00 to 2025-12-05 00:00:00
+Price range: $50.98 to $152.33
+Can fit 575 weeks in context (11.1 years)
+
+================================================================================
+WEEKLY AGGREGATION BENEFITS
+================================================================================
+Daily approach:
+  - Total data points: ~2771 days (~11 years)
+  - Context limit: 1024 days (~2.8 years)
+  - Missing history: ~1747 days (~4.8 years)
+  - Coverage: 37.0% of available data
+
+Weekly approach:
+  - Total data points: 575 weeks (~11.1 years)
+  - Context limit: 575 weeks (11.1 years)
+  - Missing history: NONE - FULL HISTORY CAPTURED! ✓
+  - Coverage: 100% of available data ✓
+
+Key advantages:
+  ✓ Captures long-term trends and multi-year cycles
+  ✓ Sees seasonal patterns across full history
+  ✓ Better for commodities with long-term price dynamics
+================================================================================
+
+Train period: 2014-12-05 00:00:00 to 2025-11-07 00:00:00
+Test period:  2025-11-14T00:00:00.000000000 to 2025-12-05T00:00:00.000000000
+Train size: 571 weeks (11.0 years)
+Test size:  4 weeks
+
+Loading Chronos-2 model: amazon/chronos-2
+`torch_dtype` is deprecated! Use `dtype` instead!
+`torch_dtype` is deprecated! Use `dtype` instead!
+Running inference with context of 571 weeks (11.0 years)...
+Forecasting 4 weeks ahead...
+Model quantiles: [0.01, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.99]
+Forecast shape: (21, 4)
+
+================================================================================
+FORECAST EVALUATION METRICS
+================================================================================
+Mean Absolute Error (MAE):       $0.6125
+Mean Squared Error (MSE):        $0.5588
+Root Mean Squared Error (RMSE):  $0.7475
+Mean Absolute Percentage Error:  0.99%
+================================================================================
+
+================================================================================
+WEEK-BY-WEEK COMPARISON
+================================================================================
+Week Ending     Actual     Predicted  Error      Error %
+--------------------------------------------------------------------------------
+2025-11-14      $62.49     $62.75     $-0.26     -0.42    %
+2025-11-21      $61.35     $62.50     $-1.15     -1.87    %
+2025-11-28      $62.91     $62.00     $0.91      1.45     %
+2025-12-05      $62.13     $62.00     $0.13      0.21     %
+================================================================================
+
+Plot saved to: experiments/cotton_forecast_weekly_plot.png
+
+Done!
+
+NOTE: This weekly forecast predicts prices at week-end (Friday close).
+      Each prediction represents the price ~7 days ahead from previous point.
