@@ -248,7 +248,7 @@ def plot_results(combined_data, test_start_idx, forecast, actual_prices, test_da
     plt.tight_layout()
 
     # Save plot
-    output_path = 'experiments/multivariate/cotton_multivariate_forecast_plot.png'
+    output_path = 'experiments/multivariate/zeroshot_forecast_multivariate_plot.png'
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"\nPlot saved to: {output_path}")
 

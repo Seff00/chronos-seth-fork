@@ -259,7 +259,7 @@ def main():
     ax2.grid(axis='x', alpha=0.3)
 
     plt.tight_layout()
-    output_path = 'experiments/multivariate/covariate_importance_analysis.png'
+    output_path = 'experiments/multivariate/zeroshot_forecast_covariate_importance_plot.png'
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"\nPlot saved to: {output_path}")
     plt.show()
