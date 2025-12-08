@@ -107,8 +107,8 @@ def run_inference(combined_data, test_start_idx):
         combined_data.index[test_start_idx:test_start_idx + PREDICTION_LENGTH]
     )
 
-    # Build input dictionary
-    inputs = {
+    # Build input dictionary (note: pipeline.predict expects a LIST of dicts)
+    input_dict = {
         "target": target,  # (context_length,)
         "past_covariates": {
             "crude_oil": context_data['crude'].values,      # (context_length,)
@@ -127,19 +127,19 @@ def run_inference(combined_data, test_start_idx):
     print(f"\nInput structure:")
     print(f"  Target (Cotton):        shape {target.shape}")
     print(f"  Past covariates:")
-    for name, values in inputs['past_covariates'].items():
+    for name, values in input_dict['past_covariates'].items():
         print(f"    - {name:15}: shape {values.shape}")
     print(f"  Future covariates:")
-    for name, values in inputs['future_covariates'].items():
+    for name, values in input_dict['future_covariates'].items():
         print(f"    - {name:15}: shape {values.shape}")
 
     print(f"\nRunning multivariate inference...")
     print(f"Context: {len(target)} days")
     print(f"Forecasting {PREDICTION_LENGTH} days ahead...")
 
-    # Run prediction
+    # Run prediction (input must be a LIST of dicts, where each dict is one task)
     predictions = pipeline.predict(
-        inputs,
+        [input_dict],  # Wrap in list!
         prediction_length=PREDICTION_LENGTH,
     )
 
