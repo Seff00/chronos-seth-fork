@@ -18,20 +18,22 @@ QUANTILE_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
 def load_data(filepath):
     """Load and preprocess Cotton Futures data."""
-    # Read CSV, skip the Ticker row
-    df = pd.read_csv(filepath, skiprows=[1])
+    # CSV structure: Row 0=headers, Row 1=tickers, Row 2="Date" label, Row 3+=data
+    # Skip rows 1 and 2, use first column as date index
+    df = pd.read_csv(filepath, header=0, skiprows=[1, 2], index_col=0)
 
-    # Convert Date column to datetime
-    df['Date'] = pd.to_datetime(df['Date'])
+    # Convert index to datetime
+    df.index = pd.to_datetime(df.index)
+    df.index.name = 'Date'
 
     # Sort by date
-    df = df.sort_values('Date').reset_index(drop=True)
+    df = df.sort_index()
 
     # Extract Close prices
     close_prices = df['Close'].values
 
     print(f"Loaded {len(close_prices)} data points")
-    print(f"Date range: {df['Date'].min()} to {df['Date'].max()}")
+    print(f"Date range: {df.index.min()} to {df.index.max()}")
     print(f"Price range: ${close_prices.min():.2f} to ${close_prices.max():.2f}")
 
     return df, close_prices
@@ -70,15 +72,15 @@ def plot_results(df, close_prices, forecast, context_length):
 
     # Get the last portion of data for visualization
     viz_length = min(100, len(close_prices))
-    viz_dates = df['Date'].values[-viz_length:]
+    viz_dates = df.index.values[-viz_length:]
     viz_prices = close_prices[-viz_length:]
 
     # Context dates (last context_length points)
-    context_dates = df['Date'].values[-context_length:]
+    context_dates = df.index.values[-context_length:]
     context_prices = close_prices[-context_length:]
 
     # Generate future dates for forecast
-    last_date = pd.to_datetime(df['Date'].iloc[-1])
+    last_date = df.index[-1]
     future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=PREDICTION_LENGTH)
 
     # Plot historical data (lighter)
@@ -127,7 +129,7 @@ def plot_results(df, close_prices, forecast, context_length):
 
 def print_forecast_summary(forecast, df):
     """Print detailed forecast summary."""
-    last_date = pd.to_datetime(df['Date'].iloc[-1])
+    last_date = df.index[-1]
     future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=PREDICTION_LENGTH)
 
     print("\n" + "="*80)
@@ -152,7 +154,7 @@ def print_forecast_summary(forecast, df):
 
     # Last actual price
     last_price = df['Close'].iloc[-1]
-    print(f"\nLast actual price ({df['Date'].iloc[-1].strftime('%Y-%m-%d')}): ${last_price:.2f}")
+    print(f"\nLast actual price ({df.index[-1].strftime('%Y-%m-%d')}): ${last_price:.2f}")
     print(f"7-day median forecast: ${forecast[median_idx, -1]:.2f}")
     print(f"Expected change: ${forecast[median_idx, -1] - last_price:.2f} "
           f"({(forecast[median_idx, -1] - last_price) / last_price * 100:.2f}%)")

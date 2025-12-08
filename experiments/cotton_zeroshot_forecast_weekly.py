@@ -19,20 +19,19 @@ QUANTILE_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
 def load_and_aggregate_data(filepath):
     """Load daily data and aggregate to weekly frequency."""
-    # Read CSV, skip the Ticker row
-    df = pd.read_csv(filepath, skiprows=[1])
+    # CSV structure: Row 0=headers, Row 1=tickers, Row 2="Date" label, Row 3+=data
+    # Skip rows 1 and 2, use first column as date index
+    df = pd.read_csv(filepath, header=0, skiprows=[1, 2], index_col=0)
 
-    # Convert Date column to datetime
-    df['Date'] = pd.to_datetime(df['Date'])
+    # Convert index to datetime
+    df.index = pd.to_datetime(df.index)
+    df.index.name = 'Date'
 
     # Sort by date
-    df = df.sort_values('Date').reset_index(drop=True)
+    df = df.sort_index()
 
     print(f"Loaded {len(df)} daily data points")
-    print(f"Date range: {df['Date'].min()} to {df['Date'].max()}")
-
-    # Set Date as index for resampling
-    df.set_index('Date', inplace=True)
+    print(f"Date range: {df.index.min()} to {df.index.max()}")
 
     # Aggregate to weekly frequency (using last business day of week)
     # 'W-FRI' = week ending on Friday (common for financial data)

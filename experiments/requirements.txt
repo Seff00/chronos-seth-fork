@@ -1,0 +1,33 @@
+# Chronos Forecasting Experiments - Requirements
+#
+# INSTALLATION INSTRUCTIONS:
+# ================================================
+# 1. Install chronos from repo root: pip install -e .
+# 2. Install this file: pip install -r experiments/requirements.txt
+# ================================================
+#
+# This will install PyTorch with CUDA 12.1 support automatically
+
+# Force PyTorch to install from CUDA index first, then fallback to PyPI for other packages
+--index-url https://download.pytorch.org/whl/cu121
+--extra-index-url https://pypi.org/simple
+
+# PyTorch with CUDA 12.1 (MUST be listed before other packages)
+torch>=2.2,<3
+torchvision
+torchaudio
+
+# Data manipulation
+pandas>=2.0,<2.4
+numpy>=1.21,<3
+
+# Visualization
+matplotlib>=3.5.0
+
+# Core ML libraries (will be installed by chronos, but listed for reference)
+# transformers>=4.41,<5
+# accelerate>=0.34,<2
+
+# Optional: Jupyter support for interactive experimentation
+# jupyter>=1.0.0
+# ipykernel>=6.0.0
