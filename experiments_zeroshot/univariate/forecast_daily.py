@@ -141,25 +141,37 @@ def plot_results(df, close_prices_train, forecast, actual_prices, test_dates):
 
     # Plot actual test data (ground truth)
     ax.plot(test_dates, actual_prices, label='Actual (Test Period)',
-            color='green', linewidth=2, marker='o', markersize=6)
+            color='orange', linewidth=2, marker='o', markersize=6)
 
-    # Plot median forecast (0.5 quantile)
+    # Determine forecast direction (compare first forecast with last historical value)
     median_idx = QUANTILE_LEVELS.index(0.5)
-    ax.plot(test_dates, forecast[median_idx, :], label='Median Forecast',
-            color='red', linewidth=2, marker='s', markersize=6, linestyle='--')
+    last_historical_value = historical_prices[-1]
+    first_forecast_value = forecast[median_idx, 0]
+
+    # Choose color based on direction: green if up, red if down
+    if first_forecast_value > last_historical_value:
+        forecast_color = 'green'
+        direction_label = 'UP'
+    else:
+        forecast_color = 'red'
+        direction_label = 'DOWN'
+
+    # Plot median forecast
+    ax.plot(test_dates, forecast[median_idx, :], label=f'Median Forecast ({direction_label})',
+            color=forecast_color, linewidth=2, marker='s', markersize=6, linestyle='--')
 
     # Plot uncertainty bands
     # 80% interval (0.1 - 0.9)
     q10_idx = QUANTILE_LEVELS.index(0.1)
     q90_idx = QUANTILE_LEVELS.index(0.9)
     ax.fill_between(test_dates, forecast[q10_idx, :], forecast[q90_idx, :],
-                     alpha=0.2, color='red', label='80% Interval (Q10-Q90)')
+                     alpha=0.2, color=forecast_color, label='80% Interval (Q10-Q90)')
 
     # 60% interval (0.2 - 0.8)
     q20_idx = QUANTILE_LEVELS.index(0.2)
     q80_idx = QUANTILE_LEVELS.index(0.8)
     ax.fill_between(test_dates, forecast[q20_idx, :], forecast[q80_idx, :],
-                     alpha=0.3, color='red', label='60% Interval (Q20-Q80)')
+                     alpha=0.3, color=forecast_color, label='60% Interval (Q20-Q80)')
 
     ax.set_xlabel('Date', fontsize=12)
     ax.set_ylabel('Cotton Futures Price (USD)', fontsize=12)
@@ -171,7 +183,7 @@ def plot_results(df, close_prices_train, forecast, actual_prices, test_dates):
     plt.tight_layout()
 
     # Save plot
-    output_path = 'experiments/univariate/zeroshot_forecast_daily_plot.png'
+    output_path = 'experiments_zeroshot/univariate/forecast_daily_plot.png'
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"\nPlot saved to: {output_path}")
 

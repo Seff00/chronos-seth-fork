@@ -1,3 +1,5 @@
+*** covariate study ***
+
 correlation =/= feature importance.
 
 might be good to measure importance across various or longer time steps
@@ -8,3 +10,9 @@ and thus does not fully reflect the entire dataset.
 
 
 
+
+experiments:
+1. univariate daily forecasting
+2. univariate weekly forecasting
+3. multivariate daily forecasting / direction
+4. (to do) rolling 1 day vs direct full horizon prediction
