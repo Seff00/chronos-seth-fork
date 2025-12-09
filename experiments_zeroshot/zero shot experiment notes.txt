@@ -14,6 +14,31 @@ other possible reasons why copper was a "better" covariate than oil:
 - volatility from copper (vs smooth oil prices) might provide the model some signal for cotton
 - spurious correlations
 
+=========================================================================================================
+When you want to train on the latest data and test on the last 7 days (instead of first 7 days of a 1-year
+  hold-out), you'll need to update:
+
+  Files to Update:
+
+  1. data_split.py (Line 61)
+
+  # Current
+  test_size = 365  # 1 year
+
+  # Change to
+  test_size = 7    # Last 7 days only
+
+  2. forecast_direct.py (Line 32)
+
+  # Current
+  TEST_SET_SIZE = 365  # Hold-out test set is last 365 days (1 year)
+
+  # Change to
+  TEST_SET_SIZE = 7    # Hold-out test set is last 7 days
+
+  3. train.py - NO CHANGES NEEDED
+=========================================================================================================
+
 experiments:
 1. univariate daily forecasting
 2. univariate weekly forecasting

@@ -33,7 +33,6 @@ PLOT_METRICS = True  # Set to False for long prediction periods to avoid clutter
 QUANTILE_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
 # NOTE: This script tests on the LAST 7 days (most recent data)
-# Unlike forecast_direct.py which tests on first 7 days of 1-year holdout
 
 def load_csv_data(filepath, asset_name):
     """Load and preprocess commodity CSV data."""
