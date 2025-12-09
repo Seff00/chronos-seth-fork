@@ -3,20 +3,23 @@ Data splitting utilities for time series training.
 
 Splits data chronologically:
 - Test set: Latest 1 year (hold-out)
-- Validation set: 1 year before test set
-- Training set: Everything before validation set
+- Training set: Everything before test set
+
+Simple workflow:
+1. Train on train (no validation) → model
+2. Test on test → final evaluation
 """
 
 import pandas as pd
 
 
-def split_train_val_test(
+def split_train_test(
     combined_data: pd.DataFrame,
     use_recent_years_only: bool = False,
     recent_years: int = 5,
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Split time series data into train, validation, and test sets chronologically.
+    Split time series data into train and test sets chronologically.
 
     Parameters
     ----------
@@ -30,23 +33,19 @@ def split_train_val_test(
     Returns
     -------
     train_data : pd.DataFrame
-        Training set (oldest data)
-    val_data : pd.DataFrame
-        Validation set (1 year before test set)
+        Training set (all data except latest year)
     test_data : pd.DataFrame
         Test set (latest 1 year, hold-out)
 
     Split Logic
     -----------
     - Test: Latest 365 days (1 year)
-    - Val: 365 days before test (1 year)
-    - Train: All remaining data before val
+    - Train: All remaining data before test
 
     If use_recent_years_only=True with recent_years=5:
     - Uses only last 5 years of data total
     - Test: 365 days (year 5)
-    - Val: 365 days (year 4)
-    - Train: Remaining ~3 years (years 1-3)
+    - Train: Remaining ~4 years (years 1-4)
     """
     total_points = len(combined_data)
 
@@ -60,24 +59,20 @@ def split_train_val_test(
 
     # Define split sizes
     test_size = 365  # 1 year
-    val_size = 365   # 1 year
 
     # Check if we have enough data
-    min_required = test_size + val_size
-    if total_points <= min_required:
+    if total_points <= test_size:
         raise ValueError(
-            f"Insufficient data for train/val/test split. "
-            f"Need at least {min_required + 1} days, got {total_points} days. "
+            f"Insufficient data for train/test split. "
+            f"Need at least {test_size + 1} days, got {total_points} days. "
             f"Consider setting use_recent_years_only=False or reducing recent_years."
         )
 
-    # Calculate split indices (chronological)
+    # Calculate split index (chronological)
     test_start_idx = total_points - test_size
-    val_start_idx = test_start_idx - val_size
 
     # Split the data
-    train_data = combined_data.iloc[:val_start_idx]
-    val_data = combined_data.iloc[val_start_idx:test_start_idx]
+    train_data = combined_data.iloc[:test_start_idx]
     test_data = combined_data.iloc[test_start_idx:]
 
     # Print split summary
@@ -92,20 +87,16 @@ def split_train_val_test(
     print(f"  To:   {train_data.index[-1].strftime('%Y-%m-%d')}")
     print()
 
-    print(f"Validation set:          {len(val_data)} days ({len(val_data)/365:.2f} years, {len(val_data)/total_points*100:.1f}%)")
-    print(f"  From: {val_data.index[0].strftime('%Y-%m-%d')}")
-    print(f"  To:   {val_data.index[-1].strftime('%Y-%m-%d')}")
-    print()
-
     print(f"Test set (HOLD-OUT):     {len(test_data)} days ({len(test_data)/365:.2f} years, {len(test_data)/total_points*100:.1f}%)")
     print(f"  From: {test_data.index[0].strftime('%Y-%m-%d')}")
     print(f"  To:   {test_data.index[-1].strftime('%Y-%m-%d')}")
     print()
 
-    print("NOTE: Test set is held out and NOT used during training/validation")
+    print("NOTE: Test set is held out and NOT used during training")
+    print("      No validation set - training without early stopping")
     print("="*80)
 
-    return train_data, val_data, test_data
+    return train_data, test_data
 
 
 def prepare_training_samples(

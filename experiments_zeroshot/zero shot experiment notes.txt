@@ -21,4 +21,6 @@ experiments:
 4. rolling 1 day vs direct full horizon prediction
 5. LoRA
 [to do]
-6. full finetuning
+- predict returns (vs price) === with lora?
+- predict copper price (vs cotton price as target) === with lora?
+- full finetuning

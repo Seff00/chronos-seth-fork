@@ -23,10 +23,14 @@ COVARIATES = [
     # {"file": "Natural_Gas.csv", "name": "Natural Gas"},
 ]
 
-MODEL_NAME = "experiments_finetune/lora/checkpoint_1day_notest/finetuned-ckpt"
+MODEL_NAME = "experiments_finetune/lora/checkpoint/finetuned-ckpt"
 PREDICTION_LENGTH = 7
-CONTEXT_LENGTH = 1024
+CONTEXT_LENGTH = 365  # Match training context length
 QUANTILE_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+
+# Test set configuration
+TEST_SET_SIZE = 365  # Hold-out test set is last 365 days (1 year)
+# We'll predict on the FIRST 7 days of this hold-out test set
 
 def load_csv_data(filepath, asset_name):
     """Load and preprocess commodity CSV data."""
@@ -107,6 +111,10 @@ def run_inference(combined_data, test_start_idx, covariate_columns):
 
     Parameters
     ----------
+    combined_data : pd.DataFrame
+        Full aligned dataset
+    test_start_idx : int
+        Index where test set starts (beginning of hold-out test set)
     covariate_columns : list of str
         Column names for covariates (excluding 'target')
     """
@@ -117,11 +125,16 @@ def run_inference(combined_data, test_start_idx, covariate_columns):
         torch_dtype=torch.bfloat16,
     )
 
-    # Split data for training
+    # Training data: everything before test set
     train_data = combined_data.iloc[:test_start_idx]
 
-    # Get context data (last CONTEXT_LENGTH points)
+    # Get context data (last CONTEXT_LENGTH points from training data)
     context_data = train_data.tail(CONTEXT_LENGTH)
+
+    print(f"\nContext window for prediction:")
+    print(f"  From: {context_data.index[0].strftime('%Y-%m-%d')}")
+    print(f"  To:   {context_data.index[-1].strftime('%Y-%m-%d')}")
+    print(f"  Size: {len(context_data)} days")
 
     # Prepare target
     target = context_data['target'].values
@@ -306,9 +319,10 @@ def main():
     covariate_names = ', '.join([cov['name'] for cov in COVARIATES])
 
     print("="*80)
-    print(f"{TARGET_NAME} Multivariate Zero-Shot Forecasting with Chronos-2")
+    print(f"{TARGET_NAME} Direct 7-Day Forecasting with Fine-Tuned Chronos-2")
     print(f"Covariates: {covariate_names}, Calendar Features")
-    print(f"Evaluation Mode: Predicting on Last {PREDICTION_LENGTH} Days (Holdout)")
+    print(f"Model: LoRA Fine-Tuned (PREDICTION_LENGTH={PREDICTION_LENGTH})")
+    print(f"Evaluation: First {PREDICTION_LENGTH} days of hold-out test set")
     print("="*80)
 
     # Load target
@@ -329,17 +343,30 @@ def main():
     # Get covariate column names (all columns except 'target')
     covariate_columns = [col for col in combined_data.columns if col != 'target']
 
-    # Split: use all except last N days for testing
-    test_start_idx = len(combined_data) - PREDICTION_LENGTH
-    test_dates = combined_data.index[test_start_idx:]
-    actual_prices = combined_data['target'].iloc[test_start_idx:].values
+    # Split: Hold-out test set is last TEST_SET_SIZE days
+    # We predict on the FIRST PREDICTION_LENGTH days of this test set
+    test_set_start = len(combined_data) - TEST_SET_SIZE
+    test_start_idx = test_set_start
+    test_end_idx = test_start_idx + PREDICTION_LENGTH
 
-    print(f"\nTrain period: {combined_data.index[0].strftime('%Y-%m-%d')} to " +
-          f"{combined_data.index[test_start_idx - 1].strftime('%Y-%m-%d')}")
-    print(f"Test period:  {test_dates[0].strftime('%Y-%m-%d')} to " +
-          f"{test_dates[-1].strftime('%Y-%m-%d')}")
-    print(f"Train size: {test_start_idx} days")
-    print(f"Test size:  {PREDICTION_LENGTH} days")
+    test_dates = combined_data.index[test_start_idx:test_end_idx]
+    actual_prices = combined_data['target'].iloc[test_start_idx:test_end_idx].values
+
+    print(f"\n" + "="*80)
+    print("DATA SPLIT FOR EVALUATION")
+    print("="*80)
+    print(f"Training period: {combined_data.index[0].strftime('%Y-%m-%d')} to " +
+          f"{combined_data.index[test_set_start - 1].strftime('%Y-%m-%d')}")
+    print(f"  Size: {test_set_start} days")
+    print()
+    print(f"Hold-out test set: {combined_data.index[test_set_start].strftime('%Y-%m-%d')} to " +
+          f"{combined_data.index[-1].strftime('%Y-%m-%d')}")
+    print(f"  Size: {TEST_SET_SIZE} days (NOT used in training)")
+    print()
+    print(f"Evaluation period (first {PREDICTION_LENGTH} days of test set):")
+    print(f"  {test_dates[0].strftime('%Y-%m-%d')} to {test_dates[-1].strftime('%Y-%m-%d')}")
+    print(f"  Size: {PREDICTION_LENGTH} days")
+    print("="*80)
 
     # Run multivariate inference
     forecast = run_inference(combined_data, test_start_idx, covariate_columns)

@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import torch
 from chronos import Chronos2Pipeline
-from data_split import split_train_val_test, prepare_training_samples
+from data_split import split_train_test, prepare_training_samples
 
 # Configuration
 DATA_FOLDER = r"C:\Users\Seth\Desktop\AIAP\proj\myaiapprojrepo\data\raw"
@@ -32,7 +32,7 @@ LEARNING_RATE = 1e-5            # Higher LR for LoRA (recommended)
 NUM_STEPS = 500                 # Training steps
 BATCH_SIZE = 256                # Default batch size (reduce if OOM)
 CONTEXT_LENGTH = 365            # Use last year (365 days) as context
-PREDICTION_LENGTH = 1           # Predict 1 day ahead
+PREDICTION_LENGTH = 7           # Predict 7 day ahead
 
 # Training Data Configuration
 USE_RECENT_YEARS_ONLY = False   # Set True to use only recent 5-7 years
@@ -73,14 +73,14 @@ def align_data(target, covariates_dict):
 
 def prepare_training_data(combined_data):
     """
-    Prepare training, validation, and test data for Chronos-2.
+    Prepare training and test data for Chronos-2.
 
-    Returns (train_inputs, val_inputs, test_data) where:
-    - train_inputs, val_inputs: list of dicts for pipeline.fit()
+    Returns (train_inputs, test_data) where:
+    - train_inputs: list of dicts for pipeline.fit()
     - test_data: DataFrame for hold-out evaluation
     """
-    # Split data chronologically: train / val / test
-    train_data, val_data, test_data = split_train_val_test(
+    # Split data chronologically: train / test
+    train_data, test_data = split_train_test(
         combined_data,
         use_recent_years_only=USE_RECENT_YEARS_ONLY,
         recent_years=RECENT_YEARS,
@@ -93,14 +93,7 @@ def prepare_training_data(combined_data):
         sample_name="training samples"
     )
 
-    # Generate sliding window samples for validation
-    val_inputs = prepare_training_samples(
-        val_data,
-        context_length=CONTEXT_LENGTH,
-        sample_name="validation samples"
-    )
-
-    return train_inputs, val_inputs, test_data
+    return train_inputs, test_data
 
 def main():
     print("="*80)
@@ -124,7 +117,7 @@ def main():
     combined_data = align_data(target, covariates_dict)
 
     # Prepare training data (test_data is held out for later evaluation)
-    train_inputs, val_inputs, test_data = prepare_training_data(combined_data)
+    train_inputs, test_data = prepare_training_data(combined_data)
 
     # Load pretrained model
     print(f"\nLoading pretrained model: {MODEL_NAME}")
@@ -148,12 +141,13 @@ def main():
     print("="*80)
 
     print("\nStarting LoRA fine-tuning...")
+    print("NOTE: Training WITHOUT validation (no early stopping)")
 
     # Fine-tune with LoRA
     try:
         finetuned_pipeline = pipeline.fit(
             inputs=train_inputs,
-            validation_inputs=val_inputs,
+            validation_inputs=None,  # No validation
             prediction_length=PREDICTION_LENGTH,
             finetune_mode=FINETUNE_MODE,
             learning_rate=LEARNING_RATE,
