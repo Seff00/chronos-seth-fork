@@ -26,13 +26,13 @@ COVARIATES = [
     # {"file": "Natural_Gas.csv", "name": "Natural Gas"},
 ]
 
-MODEL_NAME = "experiments_finetune/lora/checkpoint/finetuned-ckpt"
-PREDICTION_DAYS = 7  # Rolling prediction for LAST N days (most recent data)
+# MODEL_NAME = "experiments_finetune/lora/checkpoint/finetuned-ckpt"
+MODEL_NAME = "experiments_finetune/lora/checkpoint_first7days/finetuned-ckpt"
+# PREDICTION_DAYS = 7  # Rolling prediction for LAST N days (most recent data)
+PREDICTION_DAYS = 30  # Rolling prediction for LAST 30 days
 CONTEXT_LENGTH = 365  # Use last 365 days for context (match training)
 PLOT_METRICS = True  # Set to False for long prediction periods to avoid cluttered plots
 QUANTILE_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-
-# NOTE: This script tests on the LAST 7 days (most recent data)
 
 def load_csv_data(filepath, asset_name):
     """Load and preprocess commodity CSV data."""
