@@ -1,33 +1,66 @@
-# Chronos Forecasting Experiments - Requirements
+# ============================================================================
+# Chronos Forecasting Experiments - Complete Requirements
+# ============================================================================
+# This is the single source of truth for all packages needed for experiments.
+# Includes all Chronos dependencies plus experiment-specific packages.
 #
-# INSTALLATION INSTRUCTIONS:
-# ================================================
-# 1. Install chronos from repo root: pip install -e .
-# 2. Install this file: pip install -r experiments/requirements.txt
-# ================================================
-#
-# This will install PyTorch with CUDA 12.1 support automatically
+# INSTALLATION:
+# pip install -r experiments_zeroshot/requirements.txt
+# ============================================================================
 
-# Force PyTorch to install from CUDA index first, then fallback to PyPI for other packages
+# Force PyTorch to install from CUDA index first, then fallback to PyPI
 --index-url https://download.pytorch.org/whl/cu121
 --extra-index-url https://pypi.org/simple
 
-# PyTorch with CUDA 12.1 (MUST be listed before other packages)
+# ============================================================================
+# PyTorch with CUDA 12.1 Support (MUST be listed first)
+# ============================================================================
 torch>=2.2,<3
-torchvision
-torchaudio
+torchvision>=0.17
+torchaudio>=2.2
 
-# Data manipulation
-pandas>=2.0,<2.4
-numpy>=1.21,<3
+# ============================================================================
+# Core Chronos Dependencies
+# ============================================================================
+# These are required by chronos-forecasting but listed explicitly
+# to ensure correct versions are installed
+transformers>=4.41,<5       # Hugging Face transformers for model architecture
+accelerate>=0.34,<2         # Hugging Face accelerate for training
+einops>=0.7.0,<1           # Tensor operations for attention mechanisms
+scikit-learn>=1.6.0,<2     # Required by Chronos core
 
+# ============================================================================
+# Data Processing
+# ============================================================================
+numpy>=1.21,<3             # Numerical operations
+pandas>=2.0,<2.4           # Time series data manipulation
+
+# ============================================================================
 # Visualization
-matplotlib>=3.5.0
+# ============================================================================
+matplotlib>=3.5.0          # Plotting and visualization
+seaborn>=0.12.0            # Statistical data visualization
 
-# Core ML libraries (will be installed by chronos, but listed for reference)
-# transformers>=4.41,<5
-# accelerate>=0.34,<2
+# ============================================================================
+# Fine-Tuning Support (for LoRA)
+# ============================================================================
+peft>=0.13.0,<0.19         # Parameter-Efficient Fine-Tuning (LoRA support)
 
-# Optional: Jupyter support for interactive experimentation
-# jupyter>=1.0.0
-# ipykernel>=6.0.0
+# ============================================================================
+# Additional Utilities
+# ============================================================================
+# These are commonly used dependencies that may already be installed
+# but are listed for completeness
+scipy>=1.10.0              # Scientific computing (used by many ML packages)
+tqdm>=4.60.0               # Progress bars
+requests>=2.25.0           # HTTP requests (used by HuggingFace Hub)
+pyyaml>=5.4.0              # YAML configuration support
+joblib>=1.0.0              # Parallel processing utilities
+
+# ============================================================================
+# Chronos Package
+# ============================================================================
+# Install the chronos package itself
+# If you want to install from local repo instead, comment this line and run:
+# pip install -e . (from repo root)
+chronos-forecasting>=2.2.0
