@@ -111,9 +111,9 @@ def calculate_classification_metrics(predicted_directions, actual_directions):
     y_true = np.array([1 if d == 'UP' else 0 for d in actual_directions])
 
     accuracy = accuracy_score(y_true, y_pred)
-    precision = precision_score(y_true, y_pred, zero_division=0)
-    recall = recall_score(y_true, y_pred, zero_division=0)
-    f1 = f1_score(y_true, y_pred, zero_division=0)
+    precision = precision_score(y_true, y_pred, zero_division='warn')
+    recall = recall_score(y_true, y_pred, zero_division='warn')
+    f1 = f1_score(y_true, y_pred, zero_division='warn')
 
     return {
         'accuracy': accuracy,
@@ -336,8 +336,8 @@ def print_metrics(metrics, actual_values, test_dates):
 # Plotting Functions
 # ============================================================================
 
-def plot_forecast(combined_data, test_start_idx, forecasts, actual_values, test_dates):
-    """Plot time series forecast vs actual (main plot)."""
+def plot_forecast(combined_data, test_start_idx, forecasts, actual_values, test_dates, metrics):
+    """Plot time series forecast vs actual (main plot) with direction-based coloring."""
     fig, ax = plt.subplots(figsize=(14, 6))
 
     # Get historical data for context (last 14 days before test period)
@@ -348,20 +348,33 @@ def plot_forecast(combined_data, test_start_idx, forecasts, actual_values, test_
     median_idx = QUANTILE_LEVELS.index(0.5)
     median_forecasts = forecasts[:, median_idx]
 
-    # Plot time series with forecast (no uncertainty bands)
+    # Plot historical data
     ax.plot(historical_dates, historical_prices, label='Historical Data',
             color='blue', linewidth=2, marker='o', markersize=4)
 
+    # Plot actual values
     ax.plot(test_dates, actual_values, label='Actual',
-            color='darkblue', linewidth=2.5, marker='D', markersize=7)
+            color='darkblue', linewidth=2.5, marker='D', markersize=5)
 
-    ax.plot(test_dates, median_forecasts, label='Predicted (Median)',
-            color='orange', linewidth=2, marker='s', markersize=6, linestyle='--')
+    # Plot predicted values with dynamic colors based on direction
+    predicted_dirs = metrics['predicted_directions']
+
+    # Plot connecting line (gray dashed)
+    ax.plot(test_dates, median_forecasts, color='gray', linewidth=1.5,
+            linestyle='--', alpha=0.5, zorder=1)
+
+    # Plot each prediction point with color based on direction
+    for i, (date, pred, direction) in enumerate(zip(test_dates, median_forecasts, predicted_dirs)):
+        color = 'green' if direction == 'UP' else 'red'
+        label = f'Predicted {direction}' if i == 0 or (i > 0 and direction != predicted_dirs[i-1]) else None
+        ax.scatter(date, pred, color=color, s=75, marker='s',
+                  edgecolor='black', linewidth=1, zorder=3, label=label)
 
     ax.set_xlabel('Date', fontsize=12)
     ax.set_ylabel('Cotton Futures Price (USD)', fontsize=12)
     ax.set_title('Cotton Futures Rolling Forecast vs Actual\n' +
-                 'Covariates: Crude Oil, Copper',
+                 'Covariates: Crude Oil, Copper\n' +
+                 '(Prediction colors: Green=UP, Red=DOWN)',
                  fontsize=14, fontweight='bold')
     ax.legend(loc='best')
     ax.grid(True, alpha=0.3)
@@ -483,7 +496,7 @@ def main():
         print_metrics(metrics, actual_values, test_dates)
 
         # Plot forecast (time series - always generated)
-        plot_forecast(combined_data, test_start_idx, rolling_forecasts, actual_values, test_dates)
+        plot_forecast(combined_data, test_start_idx, rolling_forecasts, actual_values, test_dates, metrics)
 
         # Plot metrics (regression + classification - optional)
         if PLOT_METRICS:

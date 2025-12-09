@@ -18,7 +18,7 @@ experiments:
 1. univariate daily forecasting
 2. univariate weekly forecasting
 3. multivariate daily forecasting / direction
-[to do]
 4. rolling 1 day vs direct full horizon prediction
+[to do]
 5. LoRA
 6. finetuning
