@@ -87,24 +87,6 @@ def align_data(target, covariates_dict):
 
     return combined
 
-def create_calendar_features(dates, prediction_dates):
-    """Create calendar features (month, day of week) for past and future."""
-    # Past features (for context)
-    past_features = pd.DataFrame({
-        'month': dates.month,
-        'day_of_week': dates.dayofweek,
-        'quarter': dates.quarter,
-    }, index=dates)
-
-    # Future features (for prediction period)
-    future_features = pd.DataFrame({
-        'month': prediction_dates.month,
-        'day_of_week': prediction_dates.dayofweek,
-        'quarter': prediction_dates.quarter,
-    }, index=prediction_dates)
-
-    return past_features, future_features
-
 def run_inference(combined_data, test_start_idx, covariate_columns):
     """
     Run multivariate forecasting using Chronos-2.
@@ -139,12 +121,6 @@ def run_inference(combined_data, test_start_idx, covariate_columns):
     # Prepare target
     target = context_data['target'].values
 
-    # Prepare calendar features
-    past_calendar, future_calendar = create_calendar_features(
-        context_data.index,
-        combined_data.index[test_start_idx:test_start_idx + PREDICTION_LENGTH]
-    )
-
     # Build past covariates dictionary dynamically
     past_covariates = {}
     for col in covariate_columns:
@@ -152,32 +128,16 @@ def run_inference(combined_data, test_start_idx, covariate_columns):
         key = col.lower().replace(' ', '_')
         past_covariates[key] = context_data[col].values
 
-    # Add calendar features to past covariates
-    past_covariates['month'] = past_calendar['month'].values
-    past_covariates['day_of_week'] = past_calendar['day_of_week'].values
-    past_covariates['quarter'] = past_calendar['quarter'].values
-
-    # Build future covariates (calendar only)
-    future_covariates = {
-        "month": future_calendar['month'].values,
-        "day_of_week": future_calendar['day_of_week'].values,
-        "quarter": future_calendar['quarter'].values,
-    }
-
     # Build input dictionary
     input_dict = {
         "target": target,
         "past_covariates": past_covariates,
-        "future_covariates": future_covariates
     }
 
     print(f"\nInput structure:")
     print(f"  Target:        shape {target.shape}")
     print(f"  Past covariates:")
     for name, values in input_dict['past_covariates'].items():
-        print(f"    - {name:15}: shape {values.shape}")
-    print(f"  Future covariates:")
-    for name, values in input_dict['future_covariates'].items():
         print(f"    - {name:15}: shape {values.shape}")
 
     print(f"\nRunning multivariate inference...")
@@ -302,7 +262,7 @@ def plot_results(combined_data, test_start_idx, forecast, actual_prices, test_da
     ax.set_xlabel('Date', fontsize=12)
     ax.set_ylabel(f'{target_name} Price (USD)', fontsize=12)
     ax.set_title(f'{target_name} Multivariate Forecast vs Actual\n' +
-                 f'Covariates: {covariate_names}, Calendar Features',
+                 f'Covariates: {covariate_names}',
                  fontsize=14, fontweight='bold')
     ax.legend(loc='best')
     ax.grid(True, alpha=0.3)
@@ -320,7 +280,7 @@ def main():
 
     print("="*80)
     print(f"{TARGET_NAME} Direct 7-Day Forecasting with Fine-Tuned Chronos-2")
-    print(f"Covariates: {covariate_names}, Calendar Features")
+    print(f"Covariates: {covariate_names}")
     print(f"Model: LoRA Fine-Tuned (PREDICTION_LENGTH={PREDICTION_LENGTH})")
     print(f"Evaluation: First {PREDICTION_LENGTH} days of hold-out test set")
     print("="*80)
@@ -381,8 +341,7 @@ def main():
     plot_results(combined_data, test_start_idx, forecast, actual_prices, test_dates, TARGET_NAME)
 
     print("\nDone!")
-    print(f"\nNOTE: This forecast uses {covariate_names} as covariates,")
-    print("      plus calendar features (month, day of week, quarter).")
+    print(f"\nNOTE: This forecast uses {covariate_names} as covariates.")
 
 if __name__ == "__main__":
     main()
