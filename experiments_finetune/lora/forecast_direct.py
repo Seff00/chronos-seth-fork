@@ -23,7 +23,7 @@ COVARIATES = [
     # {"file": "Natural_Gas.csv", "name": "Natural Gas"},
 ]
 
-MODEL_NAME = "./experiments_finetune/lora/checkpoint"
+MODEL_NAME = "experiments_finetune/lora/checkpoint_1day_notest/finetuned-ckpt"
 PREDICTION_LENGTH = 7
 CONTEXT_LENGTH = 1024
 QUANTILE_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
@@ -300,8 +300,6 @@ def plot_results(combined_data, test_start_idx, forecast, actual_prices, test_da
     output_path = 'experiments_finetune/lora/forecast_direct_plot.png'
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"\nPlot saved to: {output_path}")
-
-    plt.show()
 
 def main():
     # Build covariate names list

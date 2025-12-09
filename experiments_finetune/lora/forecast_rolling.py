@@ -26,7 +26,7 @@ COVARIATES = [
     # {"file": "Natural_Gas.csv", "name": "Natural Gas"},
 ]
 
-MODEL_NAME = "./experiments_finetune/lora/checkpoint"
+MODEL_NAME = "experiments_finetune/lora/checkpoint_7day/finetuned-ckpt"
 PREDICTION_DAYS = 7  # Rolling prediction for last N days
 CONTEXT_LENGTH = 1024  # Use last 1024 days for context
 PLOT_METRICS = True  # Set to False for long prediction periods to avoid cluttered plots

@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import torch
 from chronos import Chronos2Pipeline
+from data_split import split_train_val_test, prepare_training_samples
 
 # Configuration
 DATA_FOLDER = r"C:\Users\Seth\Desktop\AIAP\proj\myaiapprojrepo\data\raw"
@@ -32,7 +33,6 @@ NUM_STEPS = 500                 # Training steps
 BATCH_SIZE = 256                # Default batch size (reduce if OOM)
 CONTEXT_LENGTH = 365            # Use last year (365 days) as context
 PREDICTION_LENGTH = 1           # Predict 1 day ahead
-VALIDATION_SPLIT = 0.2          # 20% for validation
 
 # Training Data Configuration
 USE_RECENT_YEARS_ONLY = False   # Set True to use only recent 5-7 years
@@ -73,80 +73,34 @@ def align_data(target, covariates_dict):
 
 def prepare_training_data(combined_data):
     """
-    Prepare training and validation data for Chronos-2.
+    Prepare training, validation, and test data for Chronos-2.
 
-    Returns list of dicts in the format expected by pipeline.fit().
+    Returns (train_inputs, val_inputs, test_data) where:
+    - train_inputs, val_inputs: list of dicts for pipeline.fit()
+    - test_data: DataFrame for hold-out evaluation
     """
-    total_points = len(combined_data)
+    # Split data chronologically: train / val / test
+    train_data, val_data, test_data = split_train_val_test(
+        combined_data,
+        use_recent_years_only=USE_RECENT_YEARS_ONLY,
+        recent_years=RECENT_YEARS,
+    )
 
-    # Filter to recent years if configured
-    if USE_RECENT_YEARS_ONLY:
-        days_to_use = RECENT_YEARS * 365
-        if total_points > days_to_use:
-            combined_data = combined_data.tail(days_to_use)
-            print(f"\nUsing only recent {RECENT_YEARS} years: {len(combined_data)} days")
+    # Generate sliding window samples for training
+    train_inputs = prepare_training_samples(
+        train_data,
+        context_length=CONTEXT_LENGTH,
+        sample_name="training samples"
+    )
 
-    # Split into train and validation
-    val_size = int(len(combined_data) * VALIDATION_SPLIT)
-    train_size = len(combined_data) - val_size
+    # Generate sliding window samples for validation
+    val_inputs = prepare_training_samples(
+        val_data,
+        context_length=CONTEXT_LENGTH,
+        sample_name="validation samples"
+    )
 
-    train_data = combined_data.iloc[:train_size]
-    val_data = combined_data.iloc[train_size:]
-
-    print(f"\n" + "="*80)
-    print("DATA SPLIT")
-    print("="*80)
-    print(f"Total data points:       {len(combined_data)}")
-    print(f"Training set:            {len(train_data)} days ({len(train_data)/len(combined_data)*100:.1f}%)")
-    print(f"  From: {train_data.index[0].strftime('%Y-%m-%d')}")
-    print(f"  To:   {train_data.index[-1].strftime('%Y-%m-%d')}")
-    print(f"Validation set:          {len(val_data)} days ({len(val_data)/len(combined_data)*100:.1f}%)")
-    print(f"  From: {val_data.index[0].strftime('%Y-%m-%d')}")
-    print(f"  To:   {val_data.index[-1].strftime('%Y-%m-%d')}")
-    print("="*80)
-
-    # Convert to format for pipeline.fit()
-    # Each entry is a dict with 'target' and 'past_covariates'
-    train_inputs = []
-    val_inputs = []
-
-    # Get covariate column names
-    covariate_columns = [col for col in combined_data.columns if col != 'target']
-
-    # Build training samples (sliding window approach)
-    # For each possible context window, create a training sample
-    for i in range(CONTEXT_LENGTH, len(train_data)):
-        context = train_data.iloc[i-CONTEXT_LENGTH:i]
-
-        # Build past covariates dict
-        past_covariates = {}
-        for col in covariate_columns:
-            key = col.lower().replace(' ', '_')
-            past_covariates[key] = context[col].values
-
-        train_inputs.append({
-            'target': context['target'].values,
-            'past_covariates': past_covariates
-        })
-
-    # Build validation samples
-    for i in range(CONTEXT_LENGTH, len(val_data)):
-        context = val_data.iloc[i-CONTEXT_LENGTH:i]
-
-        past_covariates = {}
-        for col in covariate_columns:
-            key = col.lower().replace(' ', '_')
-            past_covariates[key] = context[col].values
-
-        val_inputs.append({
-            'target': context['target'].values,
-            'past_covariates': past_covariates
-        })
-
-    print(f"\nGenerated {len(train_inputs)} training samples (sliding windows)")
-    print(f"Generated {len(val_inputs)} validation samples")
-
-    return train_inputs, val_inputs
+    return train_inputs, val_inputs, test_data
 
 def main():
     print("="*80)
@@ -169,27 +123,8 @@ def main():
     # Align data
     combined_data = align_data(target, covariates_dict)
 
-    # Prepare training data
-    train_inputs, val_inputs = prepare_training_data(combined_data)
-
-    # Recommendation on training data size
-    total_years = len(combined_data) / 365
-    print(f"\n" + "="*80)
-    print("TRAINING DATA RECOMMENDATIONS")
-    print("="*80)
-    print(f"You have {total_years:.1f} years of data ({len(combined_data)} days)")
-    print()
-    if total_years > 7:
-        print("RECOMMENDATION: Consider using only recent 5-7 years for training.")
-        print("  Reason: Market dynamics change over time. Recent data is more relevant.")
-        print("  Current setting: USE_RECENT_YEARS_ONLY = False (using all data)")
-        print()
-        print("  To use recent years only, set:")
-        print("    USE_RECENT_YEARS_ONLY = True")
-        print("    RECENT_YEARS = 5  # or 7")
-    else:
-        print("Using all available data - good choice for your dataset size.")
-    print("="*80)
+    # Prepare training data (test_data is held out for later evaluation)
+    train_inputs, val_inputs, test_data = prepare_training_data(combined_data)
 
     # Load pretrained model
     print(f"\nLoading pretrained model: {MODEL_NAME}")
@@ -213,7 +148,6 @@ def main():
     print("="*80)
 
     print("\nStarting LoRA fine-tuning...")
-    print("(This may take 15-25 minutes on RTX 4050)")
 
     # Fine-tune with LoRA
     try:
@@ -232,20 +166,18 @@ def main():
         print("\n" + "="*80)
         print("FINE-TUNING COMPLETED SUCCESSFULLY!")
         print("="*80)
-        print(f"Model saved to: {OUTPUT_DIR}")
+        print(f"Model saved to: {OUTPUT_DIR}/finetuned-ckpt")
         print()
-        print("To use the fine-tuned model in your rolling/multivariate scripts:")
-        print()
-        print("  1. Change MODEL_NAME:")
-        print(f"     MODEL_NAME = '{OUTPUT_DIR}'")
-        print()
-        print("  2. Run your inference scripts as normal:")
-        print("     python experiments_zeroshot/rolling/forecast_rolling.py")
-        print("     python experiments_zeroshot/multivariate/forecast_multivariate.py")
+        print(f"Test set (HOLD-OUT): {len(test_data)} days from {test_data.index[0].strftime('%Y-%m-%d')} to {test_data.index[-1].strftime('%Y-%m-%d')}")
+        print("  → This data was NOT used in training or validation")
+        print("  → Use this for final evaluation")
         print()
         print("Next steps:")
-        print("  - Compare fine-tuned metrics vs zero-shot baseline")
-        print("  - Fine-tuned model should have better accuracy on your specific data")
+        print("  1. Evaluate on the hold-out test set using forecast_direct.py or forecast_rolling.py")
+        print("  2. Compare fine-tuned vs zero-shot performance")
+        print()
+        print("Note: Update MODEL_NAME in forecast scripts to:")
+        print(f"  MODEL_NAME = '{OUTPUT_DIR}/finetuned-ckpt'")
         print("="*80)
 
     except RuntimeError as e:
