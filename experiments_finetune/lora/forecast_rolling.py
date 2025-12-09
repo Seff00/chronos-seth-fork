@@ -26,11 +26,14 @@ COVARIATES = [
     # {"file": "Natural_Gas.csv", "name": "Natural Gas"},
 ]
 
-MODEL_NAME = "experiments_finetune/lora/checkpoint_7day/finetuned-ckpt"
-PREDICTION_DAYS = 7  # Rolling prediction for last N days
-CONTEXT_LENGTH = 1024  # Use last 1024 days for context
+MODEL_NAME = "experiments_finetune/lora/checkpoint/finetuned-ckpt"
+PREDICTION_DAYS = 7  # Rolling prediction for LAST N days (most recent data)
+CONTEXT_LENGTH = 365  # Use last 365 days for context (match training)
 PLOT_METRICS = True  # Set to False for long prediction periods to avoid cluttered plots
 QUANTILE_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+
+# NOTE: This script tests on the LAST 7 days (most recent data)
+# Unlike forecast_direct.py which tests on first 7 days of 1-year holdout
 
 def load_csv_data(filepath, asset_name):
     """Load and preprocess commodity CSV data."""
@@ -487,9 +490,10 @@ def main():
         covariate_names = ', '.join([cov['name'] for cov in COVARIATES])
 
         print("="*80)
-        print(f"{TARGET_NAME} Rolling Forecasting with Chronos-2")
+        print(f"{TARGET_NAME} Rolling Forecasting with Fine-Tuned Chronos-2")
         print(f"Covariates: {covariate_names}")
         print("Method: Rolling window (predict d1, then predict d2 with d1 actual, etc.)")
+        print(f"Test Period: LAST {PREDICTION_DAYS} days (most recent data)")
         print("="*80)
 
         # Load target
@@ -510,16 +514,23 @@ def main():
         # Get covariate column names (all columns except 'target')
         covariate_columns = [col for col in combined_data.columns if col != 'target']
 
-        # Define test period (last PREDICTION_DAYS days)
+        # Define test period: LAST PREDICTION_DAYS days (most recent data)
         test_start_idx = len(combined_data) - PREDICTION_DAYS
         test_dates = combined_data.index[test_start_idx:]
 
-        print(f"\nTrain period: {combined_data.index[0].strftime('%Y-%m-%d')} to " +
+        print(f"\n" + "="*80)
+        print("DATA SPLIT FOR ROLLING EVALUATION")
+        print("="*80)
+        print(f"Training period: {combined_data.index[0].strftime('%Y-%m-%d')} to " +
               f"{combined_data.index[test_start_idx - 1].strftime('%Y-%m-%d')}")
-        print(f"Test period:  {test_dates[0].strftime('%Y-%m-%d')} to " +
-              f"{test_dates[-1].strftime('%Y-%m-%d')}")
-        print(f"Train size: {test_start_idx} days")
-        print(f"Test size:  {PREDICTION_DAYS} days")
+        print(f"  Size: {test_start_idx} days")
+        print()
+        print(f"Test period (LAST {PREDICTION_DAYS} days - most recent):")
+        print(f"  {test_dates[0].strftime('%Y-%m-%d')} to {test_dates[-1].strftime('%Y-%m-%d')}")
+        print(f"  Size: {PREDICTION_DAYS} days")
+        print()
+        print("NOTE: Testing on most recent data (not historical holdout)")
+        print("="*80)
 
         # Load model
         print(f"\nLoading Chronos-2 model: {MODEL_NAME}")
