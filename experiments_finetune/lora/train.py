@@ -20,13 +20,13 @@ TARGET_NAME = "Cotton Futures"
 COVARIATES = [
     {"file": "Crude_Oil.csv", "name": "Crude Oil"},
     {"file": "Copper_Futures.csv", "name": "Copper Futures"},
-    {"file": "SP500.csv", "name": "SP500"},
-    {"file": "Dollar_Index.csv", "name": "Dollar Index"},
+    # {"file": "SP500.csv", "name": "SP500"},
+    # {"file": "Dollar_Index.csv", "name": "Dollar Index"},
 ]
 
 # Cotton Futures internal features (from same CSV as target)
 # These will be loaded separately and added as covariates
-COTTON_FEATURES = ["High", "Low", "Open", "Volume"]
+COTTON_FEATURES = ["High", "Low", "Volume"] # "High", "Low", "Open", "Volume"
 
 # Model Configuration
 MODEL_NAME = "amazon/chronos-2"
@@ -41,7 +41,7 @@ CONTEXT_LENGTH = 365            # Use last year (365 days) as context
 PREDICTION_LENGTH = 7           # Predict 7 day ahead
 
 # Training Data Configuration
-USE_RECENT_YEARS_ONLY = False   # Set True to use only recent 5-7 years
+USE_RECENT_YEARS_ONLY = True   # Set True to use only recent 5-7 years
 RECENT_YEARS = 5                # If USE_RECENT_YEARS_ONLY=True, how many years
 
 def load_csv_data(filepath, asset_name, column='Close'):

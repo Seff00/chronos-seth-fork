@@ -18,8 +18,8 @@ TARGET_NAME = "Cotton Futures"
 COVARIATES = [
     {"file": "Crude_Oil.csv", "name": "Crude Oil"},
     {"file": "Copper_Futures.csv", "name": "Copper Futures"},
-    {"file": "SP500.csv", "name": "SP500"},
-    {"file": "Dollar_Index.csv", "name": "Dollar Index"},
+    # {"file": "SP500.csv", "name": "SP500"},
+    # {"file": "Dollar_Index.csv", "name": "Dollar Index"},
 ]
 
 # Cotton Futures internal features (from same CSV as target)
