@@ -21,20 +21,20 @@ TARGET_NAME = "Cotton Futures"
 COVARIATES = [
     {"file": "Crude_Oil.csv", "name": "Crude Oil"},
     {"file": "Copper_Futures.csv", "name": "Copper Futures"},
-    # Add more covariates here:
-    # {"file": "Gold_Futures.csv", "name": "Gold"},
-    # {"file": "Natural_Gas.csv", "name": "Natural Gas"},
+    {"file": "SP500.csv", "name": "SP500"},
+    {"file": "Dollar_Index.csv", "name": "Dollar Index"},
 ]
 
-# MODEL_NAME = "experiments_finetune/lora/checkpoint/finetuned-ckpt"
+# Cotton Futures internal features (from same CSV as target)
+COTTON_FEATURES = ["High", "Low", "Open", "Volume"]
+
 MODEL_NAME = "experiments_finetune/lora/checkpoint_first7days/finetuned-ckpt"
-# PREDICTION_DAYS = 7  # Rolling prediction for LAST N days (most recent data)
 PREDICTION_DAYS = 30  # Rolling prediction for LAST 30 days
 CONTEXT_LENGTH = 365  # Use last 365 days for context (match training)
 PLOT_METRICS = True  # Set to False for long prediction periods to avoid cluttered plots
 QUANTILE_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
-def load_csv_data(filepath, asset_name):
+def load_csv_data(filepath, asset_name, column='Close'):
     """Load and preprocess commodity CSV data."""
     # CSV structure: Row 0=headers, Row 1=tickers, Row 2="Date" label, Row 3+=data
     df = pd.read_csv(filepath, header=0, skiprows=[1, 2], index_col=0)
@@ -46,14 +46,29 @@ def load_csv_data(filepath, asset_name):
     # Sort by date
     df = df.sort_index()
 
-    # Extract Close prices and rename
-    prices = df['Close'].rename(asset_name)
+    # Extract prices and rename
+    prices = df[column].rename(asset_name)
 
     print(f"{asset_name:15} - {len(prices):5} points, "
           f"{prices.index.min().strftime('%Y-%m-%d')} to {prices.index.max().strftime('%Y-%m-%d')}, "
           f"range: ${prices.min():.2f} to ${prices.max():.2f}")
 
     return prices
+
+def load_cotton_features(filepath, feature_columns):
+    """Load multiple feature columns from Cotton Futures CSV."""
+    df = pd.read_csv(filepath, header=0, skiprows=[1, 2], index_col=0)
+    df.index = pd.to_datetime(df.index)
+    df.index.name = 'Date'
+    df = df.sort_index()
+
+    features_dict = {}
+    for col in feature_columns:
+        features_dict[f"Cotton {col}"] = df[col]
+        print(f"Cotton {col:10} - {len(df[col]):5} points, "
+              f"range: {df[col].min():.2f} to {df[col].max():.2f}")
+
+    return features_dict
 
 def align_data(target, covariates_dict):
     """
@@ -404,11 +419,12 @@ def plot_forecast(combined_data, test_start_idx, forecasts, actual_values, test_
 
     # Build covariate list for title
     covariate_names = ', '.join([cov['name'] for cov in COVARIATES])
+    cotton_feature_names = ', '.join([f"Cotton {f}" for f in COTTON_FEATURES])
 
     ax.set_xlabel('Date', fontsize=12)
     ax.set_ylabel(f'{target_name} Price (USD)', fontsize=12)
     ax.set_title(f'{target_name} Rolling Forecast vs Actual\n' +
-                 f'Covariates: {covariate_names}\n' +
+                 f'Covariates: {covariate_names}, {cotton_feature_names}\n' +
                  '(Prediction colors: Green=UP, Red=DOWN)',
                  fontsize=14, fontweight='bold')
     ax.legend(loc='best')
@@ -487,10 +503,11 @@ def main():
 
         # Build covariate names list
         covariate_names = ', '.join([cov['name'] for cov in COVARIATES])
+        cotton_feature_names = ', '.join([f"Cotton {f}" for f in COTTON_FEATURES])
 
         print("="*80)
         print(f"{TARGET_NAME} Rolling Forecasting with Fine-Tuned Chronos-2")
-        print(f"Covariates: {covariate_names}")
+        print(f"Covariates: {covariate_names}, {cotton_feature_names}")
         print("Method: Rolling window (predict d1, then predict d2 with d1 actual, etc.)")
         print(f"Test Period: LAST {PREDICTION_DAYS} days (most recent data)")
         print("="*80)
@@ -499,13 +516,17 @@ def main():
         print("\nLoading datasets...")
         import os
         target_path = os.path.join(DATA_FOLDER, TARGET_FILE)
-        target = load_csv_data(target_path, TARGET_NAME)
+        target = load_csv_data(target_path, TARGET_NAME, column='Close')
 
-        # Load all covariates dynamically
+        # Load external covariates
         covariates_dict = {}
         for cov in COVARIATES:
             cov_path = os.path.join(DATA_FOLDER, cov['file'])
             covariates_dict[cov['name']] = load_csv_data(cov_path, cov['name'])
+
+        # Load Cotton Futures internal features
+        cotton_features = load_cotton_features(target_path, COTTON_FEATURES)
+        covariates_dict.update(cotton_features)
 
         # Align data to common dates
         combined_data = align_data(target, covariates_dict)

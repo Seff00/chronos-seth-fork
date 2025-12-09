@@ -20,7 +20,13 @@ TARGET_NAME = "Cotton Futures"
 COVARIATES = [
     {"file": "Crude_Oil.csv", "name": "Crude Oil"},
     {"file": "Copper_Futures.csv", "name": "Copper Futures"},
+    {"file": "SP500.csv", "name": "SP500"},
+    {"file": "Dollar_Index.csv", "name": "Dollar Index"},
 ]
+
+# Cotton Futures internal features (from same CSV as target)
+# These will be loaded separately and added as covariates
+COTTON_FEATURES = ["High", "Low", "Open", "Volume"]
 
 # Model Configuration
 MODEL_NAME = "amazon/chronos-2"
@@ -38,19 +44,34 @@ PREDICTION_LENGTH = 7           # Predict 7 day ahead
 USE_RECENT_YEARS_ONLY = False   # Set True to use only recent 5-7 years
 RECENT_YEARS = 5                # If USE_RECENT_YEARS_ONLY=True, how many years
 
-def load_csv_data(filepath, asset_name):
+def load_csv_data(filepath, asset_name, column='Close'):
     """Load and preprocess commodity CSV data."""
     df = pd.read_csv(filepath, header=0, skiprows=[1, 2], index_col=0)
     df.index = pd.to_datetime(df.index)
     df.index.name = 'Date'
     df = df.sort_index()
-    prices = df['Close'].rename(asset_name)
+    prices = df[column].rename(asset_name)
 
     print(f"{asset_name:15} - {len(prices):5} points, "
           f"{prices.index.min().strftime('%Y-%m-%d')} to {prices.index.max().strftime('%Y-%m-%d')}, "
           f"range: ${prices.min():.2f} to ${prices.max():.2f}")
 
     return prices
+
+def load_cotton_features(filepath, feature_columns):
+    """Load multiple feature columns from Cotton Futures CSV."""
+    df = pd.read_csv(filepath, header=0, skiprows=[1, 2], index_col=0)
+    df.index = pd.to_datetime(df.index)
+    df.index.name = 'Date'
+    df = df.sort_index()
+
+    features_dict = {}
+    for col in feature_columns:
+        features_dict[f"Cotton {col}"] = df[col]
+        print(f"Cotton {col:10} - {len(df[col]):5} points, "
+              f"range: {df[col].min():.2f} to {df[col].max():.2f}")
+
+    return features_dict
 
 def align_data(target, covariates_dict):
     """Align target and all covariate time series to common dates."""
@@ -99,19 +120,24 @@ def main():
     print("="*80)
     print(f"LoRA Fine-Tuning: {TARGET_NAME} Forecasting with Chronos-2")
     covariate_names = ', '.join([cov['name'] for cov in COVARIATES])
-    print(f"Covariates: {covariate_names}")
+    cotton_feature_names = ', '.join([f"Cotton {f}" for f in COTTON_FEATURES])
+    print(f"Covariates: {covariate_names}, {cotton_feature_names}")
     print("="*80)
 
     # Load target
     print("\nLoading datasets...")
     target_path = os.path.join(DATA_FOLDER, TARGET_FILE)
-    target = load_csv_data(target_path, TARGET_NAME)
+    target = load_csv_data(target_path, TARGET_NAME, column='Close')
 
-    # Load covariates
+    # Load external covariates
     covariates_dict = {}
     for cov in COVARIATES:
         cov_path = os.path.join(DATA_FOLDER, cov['file'])
         covariates_dict[cov['name']] = load_csv_data(cov_path, cov['name'])
+
+    # Load Cotton Futures internal features (High, Low, Open, Volume)
+    cotton_features = load_cotton_features(target_path, COTTON_FEATURES)
+    covariates_dict.update(cotton_features)
 
     # Align data
     combined_data = align_data(target, covariates_dict)
