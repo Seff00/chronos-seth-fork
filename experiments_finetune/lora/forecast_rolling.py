@@ -28,7 +28,7 @@ COVARIATES = [
 # Cotton Futures internal features (from same CSV as target)
 COTTON_FEATURES = ["High", "Low", "Open", "Volume"]
 
-MODEL_NAME = "experiments_finetune/lora/checkpoint_first7days/finetuned-ckpt"
+MODEL_NAME = "experiments_finetune/lora/checkpoint/finetuned-ckpt"
 PREDICTION_DAYS = 30  # Rolling prediction for LAST 30 days
 CONTEXT_LENGTH = 365  # Use last 365 days for context (match training)
 PLOT_METRICS = True  # Set to False for long prediction periods to avoid cluttered plots
