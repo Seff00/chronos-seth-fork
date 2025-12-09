@@ -1,0 +1,175 @@
+(chronos) PS C:\Users\Seth\Desktop\AIAP\proj\chronos-seth-fork> python experiments_finetune\lora\train.py
+================================================================================
+LoRA Fine-Tuning: Cotton Futures Forecasting with Chronos-2
+Covariates: Crude Oil, Copper Futures
+================================================================================
+
+Loading datasets...
+Cotton Futures  -  2772 points, 2014-12-01 to 2025-12-08, range: $48.41 to $158.02
+Crude Oil       -  2772 points, 2014-12-01 to 2025-12-08, range: $-37.63 to $123.70
+Copper Futures  -  2772 points, 2014-12-01 to 2025-12-08, range: $1.94 to $5.80
+
+Before alignment: 2773 dates
+Missing values:
+  Target: 1
+  Crude Oil: 1
+  Copper Futures: 1
+C:\Users\Seth\Desktop\AIAP\proj\chronos-seth-fork\experiments_finetune\lora\train.py:67: FutureWarning: DataFrame.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  combined = combined.fillna(method='ffill').dropna()
+After alignment:  2773 dates
+Date range: 2014-12-01 to 2025-12-08
+
+================================================================================
+DATA SPLIT SUMMARY
+================================================================================
+Total data points:       2773 days (7.60 years)
+
+Training set:            2408 days (6.60 years, 86.8%)
+  From: 2014-12-01
+  To:   2024-06-27
+
+Test set (HOLD-OUT):     365 days (1.00 years, 13.2%)
+  From: 2024-06-28
+  To:   2025-12-08
+
+NOTE: Test set is held out and NOT used during training
+      No validation set - training without early stopping
+================================================================================
+Generated 2043 training samples (sliding windows with context_length=365)
+
+Loading pretrained model: amazon/chronos-2
+`torch_dtype` is deprecated! Use `dtype` instead!
+`torch_dtype` is deprecated! Use `dtype` instead!
+
+================================================================================
+FINE-TUNING CONFIGURATION
+================================================================================
+Mode:              LORA
+Learning Rate:     1e-05
+Training Steps:    500
+Batch Size:        256
+Context Length:    365 days
+Prediction Length: 7 day(s)
+Output Directory:  ./experiments_finetune/lora/checkpoint
+================================================================================
+
+Starting LoRA fine-tuning...
+NOTE: Training WITHOUT validation (no early stopping)
+  0%|                                                                                                                                                                                    | 0/500 [00:00<?, ?it/s]Could not estimate the number of tokens of the input, floating-point operations will not be computed
+{'loss': 0.6314, 'grad_norm': 0.21767966449260712, 'learning_rate': 8.020000000000001e-06, 'epoch': 0.2}
+{'loss': 0.6155, 'grad_norm': 0.21689273416996002, 'learning_rate': 6.02e-06, 'epoch': 0.4}                                                                                                                       
+{'loss': 0.6286, 'grad_norm': 0.3518916964530945, 'learning_rate': 4.0200000000000005e-06, 'epoch': 0.6}                                                                                                          
+{'loss': 0.6226, 'grad_norm': 0.28182294964790344, 'learning_rate': 2.02e-06, 'epoch': 0.8}                                                                                                                       
+{'loss': 0.6143, 'grad_norm': 0.2277752310037613, 'learning_rate': 2e-08, 'epoch': 1.0}                                                                                                                           
+{'train_runtime': 2111.7292, 'train_samples_per_second': 60.614, 'train_steps_per_second': 0.237, 'train_loss': 0.6224696502685547, 'epoch': 1.0}
+100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 500/500 [35:11<00:00,  4.22s/it] 
+
+================================================================================
+FINE-TUNING COMPLETED SUCCESSFULLY!
+================================================================================
+Model saved to: ./experiments_finetune/lora/checkpoint/finetuned-ckpt
+
+Test set (HOLD-OUT): 365 days from 2024-06-28 to 2025-12-08
+  → This data was NOT used in training or validation
+  → Use this for final evaluation
+
+Next steps:
+  1. Evaluate on the hold-out test set using forecast_direct.py or forecast_rolling.py
+  2. Compare fine-tuned vs zero-shot performance
+
+Note: Update MODEL_NAME in forecast scripts to:
+  MODEL_NAME = './experiments_finetune/lora/checkpoint/finetuned-ckpt'
+================================================================================
+(chronos) PS C:\Users\Seth\Desktop\AIAP\proj\chronos-seth-fork> python experiments_finetune\lora\forecast_direct.py
+================================================================================
+Cotton Futures Direct 7-Day Forecasting with Fine-Tuned Chronos-2
+Covariates: Crude Oil, Copper Futures, Calendar Features
+Model: LoRA Fine-Tuned (PREDICTION_LENGTH=7)
+Evaluation: First 7 days of hold-out test set
+================================================================================
+
+Loading datasets...
+Cotton Futures  -  2772 points, 2014-12-01 to 2025-12-08, range: $48.41 to $158.02
+Crude Oil       -  2772 points, 2014-12-01 to 2025-12-08, range: $-37.63 to $123.70
+Copper Futures  -  2772 points, 2014-12-01 to 2025-12-08, range: $1.94 to $5.80
+
+Before alignment: 2773 dates
+Missing values:
+  Target: 1
+  Crude Oil: 1
+  Copper Futures: 1
+C:\Users\Seth\Desktop\AIAP\proj\chronos-seth-fork\experiments_finetune\lora\forecast_direct.py:80: FutureWarning: DataFrame.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  combined = combined.fillna(method='ffill')
+After alignment:  2773 dates
+Date range: 2014-12-01 to 2025-12-08
+
+================================================================================
+DATA SPLIT FOR EVALUATION
+================================================================================
+Training period: 2014-12-01 to 2024-06-27
+  Size: 2408 days
+
+Hold-out test set: 2024-06-28 to 2025-12-08
+  Size: 365 days (NOT used in training)
+
+Evaluation period (first 7 days of test set):
+  2024-06-28 to 2024-07-09
+  Size: 7 days
+================================================================================
+
+Loading Chronos-2 model: experiments_finetune/lora/checkpoint_first7days/finetuned-ckpt
+`torch_dtype` is deprecated! Use `dtype` instead!
+
+Context window for prediction:
+  From: 2023-01-17
+  To:   2024-06-27
+  Size: 365 days
+
+Input structure:
+  Target:        shape (365,)
+  Past covariates:
+    - crude_oil      : shape (365,)
+    - copper_futures : shape (365,)
+    - month          : shape (365,)
+    - day_of_week    : shape (365,)
+    - quarter        : shape (365,)
+  Future covariates:
+    - month          : shape (7,)
+    - day_of_week    : shape (7,)
+    - quarter        : shape (7,)
+
+Running multivariate inference...
+Context: 365 days
+Forecasting 7 days ahead...
+Model quantiles: [0.01, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.99]
+Forecast shape: (21, 7)
+
+================================================================================
+FORECAST EVALUATION METRICS (Multivariate)
+================================================================================
+Mean Absolute Error (MAE):       $2.0029
+Mean Squared Error (MSE):        $4.5803
+Root Mean Squared Error (RMSE):  $2.1402
+Mean Absolute Percentage Error:  2.94%
+================================================================================
+
+================================================================================
+DAY-BY-DAY COMPARISON
+================================================================================
+Date         Actual     Predicted  Error      Error %
+--------------------------------------------------------------------------------
+2024-06-28   $69.81     $71.50     $-1.69     -2.42    %
+2024-07-01   $70.07     $71.00     $-0.93     -1.33    %
+2024-07-02   $69.33     $70.50     $-1.17     -1.69    %
+2024-07-03   $68.68     $70.50     $-1.82     -2.65    %
+2024-07-05   $67.31     $70.00     $-2.69     -4.00    %
+2024-07-08   $67.32     $70.00     $-2.68     -3.98    %
+2024-07-09   $66.96     $70.00     $-3.04     -4.54    %
+================================================================================
+
+Plot saved to: experiments_finetune/lora/forecast_direct_plot.png
+
+Done!
+
+NOTE: This forecast uses Crude Oil, Copper Futures as covariates,
+      plus calendar features (month, day of week, quarter).
