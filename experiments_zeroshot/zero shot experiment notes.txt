@@ -2,17 +2,23 @@
 
 correlation =/= feature importance.
 
+flawed 1-shot experiment: 
+covariate importance analysis 1 is a naïve way to measure feature importance,
+only on one direct 7-days prediction, which could be particularly noisy or volatile,
+and thus does not fully reflect the entire dataset. 
 might be good to measure importance across various or longer time steps
+perhaps a rolling prediction would better capture the true signal of each covariate.
 
-the covariate importance analysis 1 is a naïve way to measure feature importance,
-only on the latest 7 days, which could be noisy,
-and thus does not fully reflect the entire dataset.
-
-
-
+other possible reasons why copper was a "better" covariate than oil:
+- linearity of correlation calculations in EDA
+- volatility from copper (vs smooth oil prices) might provide the model some signal for cotton
+- spurious correlations
 
 experiments:
 1. univariate daily forecasting
 2. univariate weekly forecasting
 3. multivariate daily forecasting / direction
-4. (to do) rolling 1 day vs direct full horizon prediction
+[to do]
+4. rolling 1 day vs direct full horizon prediction
+5. LoRA
+6. finetuning
