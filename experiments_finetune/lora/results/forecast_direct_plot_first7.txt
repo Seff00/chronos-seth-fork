@@ -78,7 +78,7 @@ Next steps:
   2. Compare fine-tuned vs zero-shot performance
 
 Note: Update MODEL_NAME in forecast scripts to:
-  MODEL_NAME = './experiments_finetune/lora/checkpoint/finetuned-ckpt'
+  MODEL_NAME = './experiments_finetune/lora/checkpoint_first7days/finetuned-ckpt'
 ================================================================================
 (chronos) PS C:\Users\Seth\Desktop\AIAP\proj\chronos-seth-fork> python experiments_finetune\lora\forecast_direct.py
 ================================================================================

@@ -23,14 +23,14 @@ COVARIATES = [
     # {"file": "Natural_Gas.csv", "name": "Natural Gas"},
 ]
 
-MODEL_NAME = "experiments_finetune/lora/checkpoint_first7days/finetuned-ckpt"
+MODEL_NAME = "experiments_finetune/lora/checkpoint/finetuned-ckpt"
 PREDICTION_LENGTH = 7
 CONTEXT_LENGTH = 365  # Match training context length
 QUANTILE_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
 # Test set configuration
-TEST_SET_SIZE = 365  # Hold-out test set is last 365 days (1 year)
-# We'll predict on the FIRST 7 days of this hold-out test set
+# TEST_SET_SIZE = 365  # Hold-out test set is last 365 days (1 year)
+TEST_SET_SIZE = 7    # Hold-out test set is last 7 days
 
 def load_csv_data(filepath, asset_name):
     """Load and preprocess commodity CSV data."""

@@ -58,7 +58,8 @@ def split_train_test(
             total_points = len(combined_data)
 
     # Define split sizes
-    test_size = 365  # 1 year
+    # test_size = 365  # 1 year
+    test_size = 7    # Last 7 days only
 
     # Check if we have enough data
     if total_points <= test_size:
