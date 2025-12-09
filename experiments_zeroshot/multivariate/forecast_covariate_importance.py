@@ -1,8 +1,9 @@
 """
-Covariate importance analysis for Cotton Futures forecasting.
-Uses ablation study: removes covariates one-by-one to measure their impact.
+Covariate importance analysis using ablation study.
+Removes covariates one-by-one to measure their impact on forecast accuracy.
 """
 
+import os
 import pandas as pd
 import numpy as np
 import torch
@@ -10,9 +11,19 @@ import matplotlib.pyplot as plt
 from chronos import Chronos2Pipeline
 
 # Configuration
-COTTON_PATH = r"C:\Users\Seth\Desktop\AIAP\proj\myaiapprojrepo\data\raw\Cotton_Futures.csv"
-CRUDE_PATH = r"C:\Users\Seth\Desktop\AIAP\proj\myaiapprojrepo\data\raw\Crude_Oil.csv"
-COPPER_PATH = r"C:\Users\Seth\Desktop\AIAP\proj\myaiapprojrepo\data\raw\Copper_Futures.csv"
+DATA_FOLDER = r"C:\Users\Seth\Desktop\AIAP\proj\myaiapprojrepo\data\raw"
+TARGET_FILE = "Cotton_Futures.csv"
+TARGET_NAME = "Cotton Futures"
+
+# Covariates: Add/remove as needed
+COVARIATES = [
+    {"file": "Crude_Oil.csv", "name": "Crude Oil"},
+    {"file": "Copper_Futures.csv", "name": "Copper Futures"},
+    # Add more covariates here:
+    # {"file": "Gold_Futures.csv", "name": "Gold"},
+    # {"file": "Natural_Gas.csv", "name": "Natural Gas"},
+]
+
 MODEL_NAME = "amazon/chronos-2"
 PREDICTION_LENGTH = 7
 CONTEXT_LENGTH = 1024
@@ -27,9 +38,11 @@ def load_csv_data(filepath, asset_name):
     prices = df['Close'].rename(asset_name)
     return prices
 
-def align_data(cotton, crude, copper):
-    """Align all time series to common dates."""
-    combined = pd.DataFrame({'cotton': cotton, 'crude': crude, 'copper': copper})
+def align_data(target, covariates_dict):
+    """Align target and all covariate time series to common dates."""
+    data_dict = {'target': target}
+    data_dict.update(covariates_dict)
+    combined = pd.DataFrame(data_dict)
     combined = combined.fillna(method='ffill').dropna()
     return combined
 
@@ -49,19 +62,21 @@ def create_calendar_features(dates, prediction_dates):
 
     return past_features, future_features
 
-def run_experiment(pipeline, combined_data, test_start_idx, covariate_config):
+def run_experiment(pipeline, combined_data, test_start_idx, covariate_config, all_covariate_names):
     """
     Run inference with specific covariate configuration.
 
     Parameters
     ----------
     covariate_config : dict
-        Keys: 'crude_oil', 'copper', 'calendar'
+        Keys: covariate names (sanitized) or 'calendar'
         Values: True (include) or False (exclude)
+    all_covariate_names : list
+        List of all available covariate names from combined_data
     """
     train_data = combined_data.iloc[:test_start_idx]
     context_data = train_data.tail(CONTEXT_LENGTH)
-    target = context_data['cotton'].values
+    target = context_data['target'].values
 
     past_calendar, future_calendar = create_calendar_features(
         context_data.index,
@@ -72,12 +87,13 @@ def run_experiment(pipeline, combined_data, test_start_idx, covariate_config):
     past_covariates = {}
     future_covariates = {}
 
-    if covariate_config.get('crude_oil', False):
-        past_covariates['crude_oil'] = context_data['crude'].values
+    # Add price covariates if enabled in config
+    for cov_name in all_covariate_names:
+        key = cov_name.lower().replace(' ', '_')
+        if covariate_config.get(key, False):
+            past_covariates[key] = context_data[cov_name].values
 
-    if covariate_config.get('copper', False):
-        past_covariates['copper'] = context_data['copper'].values
-
+    # Add calendar features if enabled
     if covariate_config.get('calendar', False):
         past_covariates['month'] = past_calendar['month'].values
         past_covariates['day_of_week'] = past_calendar['day_of_week'].values
@@ -118,19 +134,32 @@ def calculate_metrics(forecast, actual):
     return {'mae': mae, 'mse': mse, 'rmse': rmse, 'mape': mape}
 
 def main():
+    covariate_names_str = ', '.join([cov['name'] for cov in COVARIATES])
+
     print("="*80)
-    print("Cotton Futures - Covariate Importance Analysis (Ablation Study)")
+    print(f"{TARGET_NAME} - Covariate Importance Analysis (Ablation Study)")
+    print(f"Available Covariates: {covariate_names_str}")
     print("="*80)
 
-    # Load data
+    # Load target
     print("\nLoading datasets...")
-    cotton = load_csv_data(COTTON_PATH, "Cotton Futures")
-    crude = load_csv_data(CRUDE_PATH, "Crude Oil")
-    copper = load_csv_data(COPPER_PATH, "Copper Futures")
-    combined_data = align_data(cotton, crude, copper)
+    target_path = os.path.join(DATA_FOLDER, TARGET_FILE)
+    target = load_csv_data(target_path, TARGET_NAME)
+
+    # Load covariates
+    covariates_dict = {}
+    for cov in COVARIATES:
+        cov_path = os.path.join(DATA_FOLDER, cov['file'])
+        covariates_dict[cov['name']] = load_csv_data(cov_path, cov['name'])
+
+    # Align data
+    combined_data = align_data(target, covariates_dict)
+
+    # Get covariate column names
+    all_covariate_names = [col for col in combined_data.columns if col != 'target']
 
     test_start_idx = len(combined_data) - PREDICTION_LENGTH
-    actual_prices = combined_data['cotton'].iloc[test_start_idx:].values
+    actual_prices = combined_data['target'].iloc[test_start_idx:].values
 
     print(f"\nTest period: {combined_data.index[test_start_idx].strftime('%Y-%m-%d')} to " +
           f"{combined_data.index[-1].strftime('%Y-%m-%d')}")
@@ -143,17 +172,37 @@ def main():
         torch_dtype=torch.bfloat16,
     )
 
-    # Define experiments
-    experiments = {
-        'Baseline (No Covariates)': {},
-        'All Covariates': {'crude_oil': True, 'copper': True, 'calendar': True},
-        'Crude Oil Only': {'crude_oil': True},
-        'Copper Only': {'copper': True},
-        'Calendar Only': {'calendar': True},
-        'Crude + Calendar': {'crude_oil': True, 'calendar': True},
-        'Copper + Calendar': {'copper': True, 'calendar': True},
-        'Crude + Copper': {'crude_oil': True, 'copper': True},
-    }
+    # Build experiments dynamically based on available covariates
+    experiments = {}
+
+    # Create sanitized keys for each covariate
+    cov_keys = {cov['name']: cov['name'].lower().replace(' ', '_') for cov in COVARIATES}
+
+    # Baseline: no covariates
+    experiments['Baseline (No Covariates)'] = {}
+
+    # All covariates (including calendar)
+    all_config = {key: True for key in cov_keys.values()}
+    all_config['calendar'] = True
+    experiments['All Covariates'] = all_config
+
+    # Individual covariates only
+    for cov_name, cov_key in cov_keys.items():
+        experiments[f'{cov_name} Only'] = {cov_key: True}
+
+    # Calendar only
+    experiments['Calendar Only'] = {'calendar': True}
+
+    # Each covariate + calendar
+    for cov_name, cov_key in cov_keys.items():
+        experiments[f'{cov_name} + Calendar'] = {cov_key: True, 'calendar': True}
+
+    # All combinations of price covariates (without calendar)
+    if len(COVARIATES) == 2:
+        # For 2 covariates, just add the combination
+        all_price_config = {key: True for key in cov_keys.values()}
+        cov_combo_name = ' + '.join([cov['name'] for cov in COVARIATES])
+        experiments[cov_combo_name] = all_price_config
 
     results = {}
 
@@ -165,7 +214,7 @@ def main():
         print(f"\n{exp_name}...")
         print(f"  Config: {config if config else 'None (univariate)'}")
 
-        forecast = run_experiment(pipeline, combined_data, test_start_idx, config)
+        forecast = run_experiment(pipeline, combined_data, test_start_idx, config, all_covariate_names)
         metrics = calculate_metrics(forecast, actual_prices)
         results[exp_name] = metrics
 
@@ -198,20 +247,26 @@ def main():
     # Compare "All Covariates" vs combinations without each feature
     importance_scores = {}
 
-    # Crude Oil importance: compare (All) vs (Copper + Calendar)
-    if 'Copper + Calendar' in results:
-        crude_impact = results['Copper + Calendar']['rmse'] - all_rmse
-        importance_scores['Crude Oil'] = crude_impact
+    # For each covariate, compare "All" vs configuration without that covariate
+    for cov in COVARIATES:
+        cov_name = cov['name']
+        # Find the experiment that has all OTHER covariates + calendar (excluding this one)
+        other_covs = [c for c in COVARIATES if c['name'] != cov_name]
 
-    # Copper importance: compare (All) vs (Crude + Calendar)
-    if 'Crude + Calendar' in results:
-        copper_impact = results['Crude + Calendar']['rmse'] - all_rmse
-        importance_scores['Copper'] = copper_impact
+        if len(COVARIATES) == 2:
+            # For 2 covariates, the complement is just the other one + calendar
+            other_name = other_covs[0]['name']
+            complement_exp_name = f'{other_name} + Calendar'
+            if complement_exp_name in results:
+                impact = results[complement_exp_name]['rmse'] - all_rmse
+                importance_scores[cov_name] = impact
 
-    # Calendar importance: compare (All) vs (Crude + Copper)
-    if 'Crude + Copper' in results:
-        calendar_impact = results['Crude + Copper']['rmse'] - all_rmse
-        importance_scores['Calendar'] = calendar_impact
+    # Calendar importance: compare "All" vs price covariates only (no calendar)
+    if len(COVARIATES) == 2:
+        price_only_name = ' + '.join([cov['name'] for cov in COVARIATES])
+        if price_only_name in results:
+            calendar_impact = results[price_only_name]['rmse'] - all_rmse
+            importance_scores['Calendar'] = calendar_impact
 
     print(f"Baseline RMSE (no covariates):     ${baseline_rmse:.4f}")
     print(f"All Covariates RMSE:               ${all_rmse:.4f}")
