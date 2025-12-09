@@ -14,10 +14,10 @@ Missing values - Cotton: 1, Crude: 1, Copper: 1
 After alignment:  2773 dates
 Date range: 2014-12-01 to 2025-12-08
 
-Train period: 2014-12-01 to 2025-11-26
-Test period:  2025-11-28 to 2025-12-08
-Train size: 2766 days
-Test size:  7 days
+Train period: 2014-12-01 to 2025-11-17
+Test period:  2025-11-18 to 2025-12-08
+Train size: 2759 days
+Test size:  14 days
 
 Loading Chronos-2 model: amazon/chronos-2
 
@@ -25,66 +25,105 @@ Loading Chronos-2 model: amazon/chronos-2
 Running Rolling Forecast...
 ================================================================================
 
-Day 1/7: Predicting 2025-11-28
+Day 1/14: Predicting 2025-11-18
+  Context size: 2759 days
+  Previous: $62.36
+  Actual: $62.57, Predicted: $62.00, Error: $0.57
+  Direction - Predicted: DOWN, Actual: UP ✗
+
+Day 2/14: Predicting 2025-11-19
+  Context size: 2760 days
+  Previous: $62.57
+  Actual: $62.30, Predicted: $62.25, Error: $0.05
+  Direction - Predicted: DOWN, Actual: DOWN ✓
+
+Day 3/14: Predicting 2025-11-20
+  Context size: 2761 days
+  Previous: $62.30
+  Actual: $61.68, Predicted: $62.00, Error: $-0.32
+  Direction - Predicted: DOWN, Actual: DOWN ✓
+
+Day 4/14: Predicting 2025-11-21
+  Context size: 2762 days
+  Previous: $61.68
+  Actual: $61.35, Predicted: $61.25, Error: $0.10
+  Direction - Predicted: DOWN, Actual: DOWN ✓
+
+Day 5/14: Predicting 2025-11-24
+  Context size: 2763 days
+  Previous: $61.35
+  Actual: $61.44, Predicted: $61.00, Error: $0.44
+  Direction - Predicted: DOWN, Actual: UP ✗
+
+Day 6/14: Predicting 2025-11-25
+  Context size: 2764 days
+  Previous: $61.44
+  Actual: $62.43, Predicted: $61.25, Error: $1.18
+  Direction - Predicted: DOWN, Actual: UP ✗
+
+Day 7/14: Predicting 2025-11-26
+  Context size: 2765 days
+  Previous: $62.43
+  Actual: $62.77, Predicted: $62.00, Error: $0.77
+  Direction - Predicted: DOWN, Actual: UP ✗
+
+Day 8/14: Predicting 2025-11-28
   Context size: 2766 days
   Previous: $62.77
   Actual: $62.91, Predicted: $62.50, Error: $0.41
   Direction - Predicted: DOWN, Actual: UP ✗
 
-Day 2/7: Predicting 2025-12-01
+Day 9/14: Predicting 2025-12-01
   Context size: 2767 days
   Previous: $62.91
   Actual: $62.83, Predicted: $62.50, Error: $0.33
   Direction - Predicted: DOWN, Actual: DOWN ✓
 
-Day 3/7: Predicting 2025-12-02
+Day 10/14: Predicting 2025-12-02
   Context size: 2768 days
   Previous: $62.83
   Actual: $62.77, Predicted: $62.75, Error: $0.02
   Direction - Predicted: DOWN, Actual: DOWN ✓
 
-Day 4/7: Predicting 2025-12-03
+Day 11/14: Predicting 2025-12-03
   Context size: 2769 days
   Previous: $62.77
   Actual: $62.66, Predicted: $62.25, Error: $0.41
   Direction - Predicted: DOWN, Actual: DOWN ✓
 
-Day 5/7: Predicting 2025-12-04
+Day 12/14: Predicting 2025-12-04
   Context size: 2770 days
   Previous: $62.66
   Actual: $62.28, Predicted: $62.25, Error: $0.03
   Direction - Predicted: DOWN, Actual: DOWN ✓
 
-Day 6/7: Predicting 2025-12-05
+Day 13/14: Predicting 2025-12-05
   Context size: 2771 days
   Previous: $62.28
   Actual: $62.13, Predicted: $62.00, Error: $0.13
   Direction - Predicted: DOWN, Actual: DOWN ✓
 
-Day 7/7: Predicting 2025-12-08
+Day 14/14: Predicting 2025-12-08
   Context size: 2772 days
   Previous: $62.13
   Actual: $64.29, Predicted: $62.00, Error: $2.29
   Direction - Predicted: DOWN, Actual: UP ✗
 
 ================================================================================
-[0 0 0 0 0 0 0]
-[1 0 0 0 0 0 1]
-here
 
 ================================================================================
 REGRESSION METRICS
 ================================================================================
-Mean Absolute Error (MAE):       $0.5171
-Mean Squared Error (MSE):        $0.8153
-Root Mean Squared Error (RMSE):  $0.9030
-Mean Absolute Percentage Error:  0.81%
+Mean Absolute Error (MAE):       $0.5036
+Mean Squared Error (MSE):        $0.5947
+Root Mean Squared Error (RMSE):  $0.7712
+Mean Absolute Percentage Error:  0.80%
 ================================================================================
 
 ================================================================================
 CLASSIFICATION METRICS (Direction Prediction: UP vs DOWN)
 ================================================================================
-Accuracy:   0.7143 (71.43%)
+Accuracy:   0.5714 (57.14%)
 Precision:  0.0000 (0.00%)
 Recall:     0.0000 (0.00%)
 F1-Score:   0.0000
@@ -96,6 +135,13 @@ DAY-BY-DAY COMPARISON
 ================================================================================
 Date         Actual     Predicted  Error      Error %    Pred Dir   Actual Dir  Correct 
 --------------------------------------------------------------------------------
+2025-11-18   $62.57     $62.00     $0.57      0.91     % DOWN       UP          ✗       
+2025-11-19   $62.30     $62.25     $0.05      0.08     % DOWN       DOWN        ✓       
+2025-11-20   $61.68     $62.00     $-0.32     -0.52    % DOWN       DOWN        ✓       
+2025-11-21   $61.35     $61.25     $0.10      0.16     % DOWN       DOWN        ✓       
+2025-11-24   $61.44     $61.00     $0.44      0.72     % DOWN       UP          ✗       
+2025-11-25   $62.43     $61.25     $1.18      1.89     % DOWN       UP          ✗       
+2025-11-26   $62.77     $62.00     $0.77      1.23     % DOWN       UP          ✗       
 2025-11-28   $62.91     $62.50     $0.41      0.65     % DOWN       UP          ✗       
 2025-12-01   $62.83     $62.50     $0.33      0.53     % DOWN       DOWN        ✓       
 2025-12-02   $62.77     $62.75     $0.02      0.03     % DOWN       DOWN        ✓       

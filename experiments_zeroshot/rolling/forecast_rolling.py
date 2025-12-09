@@ -13,9 +13,19 @@ from chronos import Chronos2Pipeline
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 # Configuration
-COTTON_PATH = r"C:\Users\Seth\Desktop\AIAP\proj\myaiapprojrepo\data\raw\Cotton_Futures.csv"
-CRUDE_PATH = r"C:\Users\Seth\Desktop\AIAP\proj\myaiapprojrepo\data\raw\Crude_Oil.csv"
-COPPER_PATH = r"C:\Users\Seth\Desktop\AIAP\proj\myaiapprojrepo\data\raw\Copper_Futures.csv"
+DATA_FOLDER = r"C:\Users\Seth\Desktop\AIAP\proj\myaiapprojrepo\data\raw"
+TARGET_FILE = "Cotton_Futures.csv"
+TARGET_NAME = "Cotton Futures"
+
+# Covariates: Add/remove as needed
+COVARIATES = [
+    {"file": "Crude_Oil.csv", "name": "Crude Oil"},
+    {"file": "Copper_Futures.csv", "name": "Copper Futures"},
+    # Add more covariates here:
+    # {"file": "Gold_Futures.csv", "name": "Gold"},
+    # {"file": "Natural_Gas.csv", "name": "Natural Gas"},
+]
+
 MODEL_NAME = "amazon/chronos-2"
 PREDICTION_DAYS = 7  # Rolling prediction for last N days
 CONTEXT_LENGTH = 1024  # Use last 1024 days for context
@@ -43,19 +53,28 @@ def load_csv_data(filepath, asset_name):
 
     return prices
 
-def align_data(cotton, crude, copper):
-    """Align all time series to common dates and handle missing values."""
-    # Combine all series
-    combined = pd.DataFrame({
-        'cotton': cotton,
-        'crude': crude,
-        'copper': copper
-    })
+def align_data(target, covariates_dict):
+    """
+    Align target and all covariate time series to common dates.
+
+    Parameters
+    ----------
+    target : pd.Series
+        Target time series
+    covariates_dict : dict
+        Dictionary of {name: series} for all covariates
+    """
+    # Combine target and all covariates
+    data_dict = {'target': target}
+    data_dict.update(covariates_dict)
+
+    combined = pd.DataFrame(data_dict)
 
     print(f"\nBefore alignment: {len(combined)} dates")
-    print(f"Missing values - Cotton: {combined['cotton'].isna().sum()}, "
-          f"Crude: {combined['crude'].isna().sum()}, "
-          f"Copper: {combined['copper'].isna().sum()}")
+    print(f"Missing values:")
+    print(f"  Target: {combined['target'].isna().sum()}")
+    for name in covariates_dict.keys():
+        print(f"  {name}: {combined[name].isna().sum()}")
 
     # Forward fill missing values
     combined = combined.fillna(method='ffill')
@@ -128,7 +147,7 @@ def calculate_classification_metrics(predicted_directions, actual_directions):
 # Prediction Functions
 # ============================================================================
 
-def predict_single_day(pipeline, context_data):
+def predict_single_day(pipeline, context_data, covariate_columns):
     """
     Predict a single day using context data.
 
@@ -137,7 +156,9 @@ def predict_single_day(pipeline, context_data):
     pipeline : Chronos2Pipeline
         Loaded model pipeline
     context_data : pd.DataFrame
-        Historical data with columns: cotton, crude, copper
+        Historical data with columns: target + covariates
+    covariate_columns : list of str
+        Column names for covariates
 
     Returns
     -------
@@ -147,16 +168,20 @@ def predict_single_day(pipeline, context_data):
     # Get context (last CONTEXT_LENGTH points)
     context = context_data.tail(CONTEXT_LENGTH)
 
-    # Prepare target (cotton futures)
-    target = context['cotton'].values
+    # Prepare target
+    target = context['target'].values
 
-    # Build input dictionary (only crude oil and copper as past covariates)
+    # Build past covariates dictionary dynamically
+    past_covariates = {}
+    for col in covariate_columns:
+        # Use column name as key (sanitize for model)
+        key = col.lower().replace(' ', '_')
+        past_covariates[key] = context[col].values
+
+    # Build input dictionary
     input_dict = {
         "target": target,
-        "past_covariates": {
-            "crude_oil": context['crude'].values,
-            "copper": context['copper'].values,
-        }
+        "past_covariates": past_covariates
     }
 
     # Run prediction (predict 1 day ahead)
@@ -170,7 +195,7 @@ def predict_single_day(pipeline, context_data):
 
     return forecast
 
-def run_rolling_forecast(pipeline, combined_data, test_start_idx):
+def run_rolling_forecast(pipeline, combined_data, test_start_idx, covariate_columns):
     """
     Run rolling forecast for the last PREDICTION_DAYS days.
 
@@ -179,6 +204,11 @@ def run_rolling_forecast(pipeline, combined_data, test_start_idx):
     - Day 2: Use historical data + actual day 1 to predict day 2
     - Day 3: Use historical data + actual days 1-2 to predict day 3
     - etc.
+
+    Parameters
+    ----------
+    covariate_columns : list of str
+        Column names for covariates (excluding 'target')
     """
     print(f"\n" + "="*80)
     print("Running Rolling Forecast...")
@@ -197,16 +227,16 @@ def run_rolling_forecast(pipeline, combined_data, test_start_idx):
         context_data = combined_data.iloc[:current_idx]
 
         # Actual value for this day
-        actual_value = combined_data['cotton'].iloc[current_idx]
+        actual_value = combined_data['target'].iloc[current_idx]
 
         # Previous day's actual value (for direction comparison)
-        previous_actual = combined_data['cotton'].iloc[current_idx - 1]
+        previous_actual = combined_data['target'].iloc[current_idx - 1]
 
         print(f"\nDay {day_offset + 1}/{PREDICTION_DAYS}: Predicting {prediction_date.strftime('%Y-%m-%d')}")
         print(f"  Context size: {len(context_data)} days")
 
         # Predict single day
-        forecast = predict_single_day(pipeline, context_data)
+        forecast = predict_single_day(pipeline, context_data, covariate_columns)
 
         # Get median prediction
         median_idx = QUANTILE_LEVELS.index(0.5)
@@ -336,14 +366,14 @@ def print_metrics(metrics, actual_values, test_dates):
 # Plotting Functions
 # ============================================================================
 
-def plot_forecast(combined_data, test_start_idx, forecasts, actual_values, test_dates, metrics):
+def plot_forecast(combined_data, test_start_idx, forecasts, actual_values, test_dates, metrics, target_name):
     """Plot time series forecast vs actual (main plot) with direction-based coloring."""
     fig, ax = plt.subplots(figsize=(14, 6))
 
     # Get historical data for context (last 14 days before test period)
     historical_data = combined_data.iloc[test_start_idx - 14:test_start_idx]
     historical_dates = historical_data.index
-    historical_prices = historical_data['cotton'].values
+    historical_prices = historical_data['target'].values
 
     median_idx = QUANTILE_LEVELS.index(0.5)
     median_forecasts = forecasts[:, median_idx]
@@ -370,10 +400,13 @@ def plot_forecast(combined_data, test_start_idx, forecasts, actual_values, test_
         ax.scatter(date, pred, color=color, s=75, marker='s',
                   edgecolor='black', linewidth=1, zorder=3, label=label)
 
+    # Build covariate list for title
+    covariate_names = ', '.join([cov['name'] for cov in COVARIATES])
+
     ax.set_xlabel('Date', fontsize=12)
-    ax.set_ylabel('Cotton Futures Price (USD)', fontsize=12)
-    ax.set_title('Cotton Futures Rolling Forecast vs Actual\n' +
-                 'Covariates: Crude Oil, Copper\n' +
+    ax.set_ylabel(f'{target_name} Price (USD)', fontsize=12)
+    ax.set_title(f'{target_name} Rolling Forecast vs Actual\n' +
+                 f'Covariates: {covariate_names}\n' +
                  '(Prediction colors: Green=UP, Red=DOWN)',
                  fontsize=14, fontweight='bold')
     ax.legend(loc='best')
@@ -450,20 +483,32 @@ def main():
     with open(output_file, 'w', encoding='utf-8') as f:
         sys.stdout = f
 
+        # Build covariate names list
+        covariate_names = ', '.join([cov['name'] for cov in COVARIATES])
+
         print("="*80)
-        print("Cotton Futures Rolling Forecasting with Chronos-2")
-        print("Covariates: Crude Oil, Copper Futures")
+        print(f"{TARGET_NAME} Rolling Forecasting with Chronos-2")
+        print(f"Covariates: {covariate_names}")
         print("Method: Rolling window (predict d1, then predict d2 with d1 actual, etc.)")
         print("="*80)
 
-        # Load all datasets
+        # Load target
         print("\nLoading datasets...")
-        cotton = load_csv_data(COTTON_PATH, "Cotton Futures")
-        crude = load_csv_data(CRUDE_PATH, "Crude Oil")
-        copper = load_csv_data(COPPER_PATH, "Copper Futures")
+        import os
+        target_path = os.path.join(DATA_FOLDER, TARGET_FILE)
+        target = load_csv_data(target_path, TARGET_NAME)
+
+        # Load all covariates dynamically
+        covariates_dict = {}
+        for cov in COVARIATES:
+            cov_path = os.path.join(DATA_FOLDER, cov['file'])
+            covariates_dict[cov['name']] = load_csv_data(cov_path, cov['name'])
 
         # Align data to common dates
-        combined_data = align_data(cotton, crude, copper)
+        combined_data = align_data(target, covariates_dict)
+
+        # Get covariate column names (all columns except 'target')
+        covariate_columns = [col for col in combined_data.columns if col != 'target']
 
         # Define test period (last PREDICTION_DAYS days)
         test_start_idx = len(combined_data) - PREDICTION_DAYS
@@ -486,7 +531,7 @@ def main():
 
         # Run rolling forecast
         rolling_forecasts, actual_values, previous_actual_values, test_dates = run_rolling_forecast(
-            pipeline, combined_data, test_start_idx
+            pipeline, combined_data, test_start_idx, covariate_columns
         )
 
         # Calculate metrics
@@ -496,7 +541,7 @@ def main():
         print_metrics(metrics, actual_values, test_dates)
 
         # Plot forecast (time series - always generated)
-        plot_forecast(combined_data, test_start_idx, rolling_forecasts, actual_values, test_dates, metrics)
+        plot_forecast(combined_data, test_start_idx, rolling_forecasts, actual_values, test_dates, metrics, TARGET_NAME)
 
         # Plot metrics (regression + classification - optional)
         if PLOT_METRICS:

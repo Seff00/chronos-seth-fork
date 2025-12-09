@@ -1,7 +1,6 @@
 """
-Multivariate forecasting on Cotton Futures using Chronos-2.
-Uses Crude Oil and Copper Futures as covariates.
-Predicts on the last 7 days (holdout) and evaluates against actual values.
+Multivariate forecasting using Chronos-2.
+Predicts on the last N days (holdout) and evaluates against actual values.
 """
 
 import pandas as pd
@@ -11,12 +10,22 @@ import matplotlib.pyplot as plt
 from chronos import Chronos2Pipeline
 
 # Configuration
-COTTON_PATH = r"C:\Users\Seth\Desktop\AIAP\proj\myaiapprojrepo\data\raw\Cotton_Futures.csv"
-CRUDE_PATH = r"C:\Users\Seth\Desktop\AIAP\proj\myaiapprojrepo\data\raw\Crude_Oil.csv"
-COPPER_PATH = r"C:\Users\Seth\Desktop\AIAP\proj\myaiapprojrepo\data\raw\Copper_Futures.csv"
-MODEL_NAME = "amazon/chronos-2"  # 120M parameter model
-PREDICTION_LENGTH = 7  # 7 days
-CONTEXT_LENGTH = 1024  # Use last 1024 days for context (~2.8 years)
+DATA_FOLDER = r"C:\Users\Seth\Desktop\AIAP\proj\myaiapprojrepo\data\raw"
+TARGET_FILE = "Cotton_Futures.csv"
+TARGET_NAME = "Cotton Futures"
+
+# Covariates: Add/remove as needed
+COVARIATES = [
+    {"file": "Crude_Oil.csv", "name": "Crude Oil"},
+    {"file": "Copper_Futures.csv", "name": "Copper Futures"},
+    # Add more covariates here:
+    # {"file": "Gold_Futures.csv", "name": "Gold"},
+    # {"file": "Natural_Gas.csv", "name": "Natural Gas"},
+]
+
+MODEL_NAME = "amazon/chronos-2"
+PREDICTION_LENGTH = 7
+CONTEXT_LENGTH = 1024
 QUANTILE_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
 def load_csv_data(filepath, asset_name):
@@ -40,21 +49,30 @@ def load_csv_data(filepath, asset_name):
 
     return prices
 
-def align_data(cotton, crude, copper):
-    """Align all time series to common dates and handle missing values."""
-    # Combine all series
-    combined = pd.DataFrame({
-        'cotton': cotton,
-        'crude': crude,
-        'copper': copper
-    })
+def align_data(target, covariates_dict):
+    """
+    Align target and all covariate time series to common dates.
+
+    Parameters
+    ----------
+    target : pd.Series
+        Target time series
+    covariates_dict : dict
+        Dictionary of {name: series} for all covariates
+    """
+    # Combine target and all covariates
+    data_dict = {'target': target}
+    data_dict.update(covariates_dict)
+
+    combined = pd.DataFrame(data_dict)
 
     print(f"\nBefore alignment: {len(combined)} dates")
-    print(f"Missing values - Cotton: {combined['cotton'].isna().sum()}, "
-          f"Crude: {combined['crude'].isna().sum()}, "
-          f"Copper: {combined['copper'].isna().sum()}")
+    print(f"Missing values:")
+    print(f"  Target: {combined['target'].isna().sum()}")
+    for name in covariates_dict.keys():
+        print(f"  {name}: {combined[name].isna().sum()}")
 
-    # Forward fill missing values (commodities markets have different trading hours/holidays)
+    # Forward fill missing values
     combined = combined.fillna(method='ffill')
 
     # Drop any remaining NaN (at the start)
@@ -83,8 +101,15 @@ def create_calendar_features(dates, prediction_dates):
 
     return past_features, future_features
 
-def run_inference(combined_data, test_start_idx):
-    """Run multivariate forecasting using Chronos-2."""
+def run_inference(combined_data, test_start_idx, covariate_columns):
+    """
+    Run multivariate forecasting using Chronos-2.
+
+    Parameters
+    ----------
+    covariate_columns : list of str
+        Column names for covariates (excluding 'target')
+    """
     print(f"\nLoading Chronos-2 model: {MODEL_NAME}")
     pipeline = Chronos2Pipeline.from_pretrained(
         MODEL_NAME,
@@ -98,34 +123,43 @@ def run_inference(combined_data, test_start_idx):
     # Get context data (last CONTEXT_LENGTH points)
     context_data = train_data.tail(CONTEXT_LENGTH)
 
-    # Prepare target (cotton futures)
-    target = context_data['cotton'].values
+    # Prepare target
+    target = context_data['target'].values
 
-    # Prepare past covariates (crude oil, copper, and calendar features)
+    # Prepare calendar features
     past_calendar, future_calendar = create_calendar_features(
         context_data.index,
         combined_data.index[test_start_idx:test_start_idx + PREDICTION_LENGTH]
     )
 
-    # Build input dictionary (note: pipeline.predict expects a LIST of dicts)
+    # Build past covariates dictionary dynamically
+    past_covariates = {}
+    for col in covariate_columns:
+        # Use column name as key (sanitize for model)
+        key = col.lower().replace(' ', '_')
+        past_covariates[key] = context_data[col].values
+
+    # Add calendar features to past covariates
+    past_covariates['month'] = past_calendar['month'].values
+    past_covariates['day_of_week'] = past_calendar['day_of_week'].values
+    past_covariates['quarter'] = past_calendar['quarter'].values
+
+    # Build future covariates (calendar only)
+    future_covariates = {
+        "month": future_calendar['month'].values,
+        "day_of_week": future_calendar['day_of_week'].values,
+        "quarter": future_calendar['quarter'].values,
+    }
+
+    # Build input dictionary
     input_dict = {
-        "target": target,  # (context_length,)
-        "past_covariates": {
-            "crude_oil": context_data['crude'].values,      # (context_length,)
-            "copper": context_data['copper'].values,         # (context_length,)
-            "month": past_calendar['month'].values,          # (context_length,)
-            "day_of_week": past_calendar['day_of_week'].values,  # (context_length,)
-            "quarter": past_calendar['quarter'].values,      # (context_length,)
-        },
-        "future_covariates": {
-            "month": future_calendar['month'].values,        # (prediction_length,)
-            "day_of_week": future_calendar['day_of_week'].values,  # (prediction_length,)
-            "quarter": future_calendar['quarter'].values,    # (prediction_length,)
-        }
+        "target": target,
+        "past_covariates": past_covariates,
+        "future_covariates": future_covariates
     }
 
     print(f"\nInput structure:")
-    print(f"  Target (Cotton):        shape {target.shape}")
+    print(f"  Target:        shape {target.shape}")
     print(f"  Past covariates:")
     for name, values in input_dict['past_covariates'].items():
         print(f"    - {name:15}: shape {values.shape}")
@@ -204,17 +238,17 @@ def print_metrics(metrics, actual, dates):
 
     print("="*80)
 
-def plot_results(combined_data, test_start_idx, forecast, actual_prices, test_dates):
-    """Plot last 14 days of historical data + 7-day prediction vs actual."""
+def plot_results(combined_data, test_start_idx, forecast, actual_prices, test_dates, target_name):
+    """Plot last 14 days of historical data + prediction vs actual."""
     fig, ax = plt.subplots(figsize=(14, 7))
 
     # Get last 14 days of training data
     historical_data = combined_data.iloc[test_start_idx - 14:test_start_idx]
     historical_dates = historical_data.index
-    historical_prices = historical_data['cotton'].values
+    historical_prices = historical_data['target'].values
 
     # Plot last 14 days of historical data
-    ax.plot(historical_dates, historical_prices, label='Historical Data (Cotton)',
+    ax.plot(historical_dates, historical_prices, label=f'Historical Data ({target_name})',
             color='blue', linewidth=2, marker='o', markersize=4)
 
     # Plot actual test data (ground truth)
@@ -249,10 +283,13 @@ def plot_results(combined_data, test_start_idx, forecast, actual_prices, test_da
     ax.fill_between(test_dates, forecast[q20_idx, :], forecast[q80_idx, :],
                      alpha=0.3, color=forecast_color, label='60% Interval (Q20-Q80)')
 
+    # Build covariate list for title
+    covariate_names = ', '.join([cov['name'] for cov in COVARIATES])
+
     ax.set_xlabel('Date', fontsize=12)
-    ax.set_ylabel('Cotton Futures Price (USD)', fontsize=12)
-    ax.set_title('Cotton Futures 7-Day Multivariate Forecast vs Actual\n' +
-                 'Covariates: Crude Oil, Copper, Calendar Features',
+    ax.set_ylabel(f'{target_name} Price (USD)', fontsize=12)
+    ax.set_title(f'{target_name} Multivariate Forecast vs Actual\n' +
+                 f'Covariates: {covariate_names}, Calendar Features',
                  fontsize=14, fontweight='bold')
     ax.legend(loc='best')
     ax.grid(True, alpha=0.3)
@@ -267,25 +304,37 @@ def plot_results(combined_data, test_start_idx, forecast, actual_prices, test_da
     plt.show()
 
 def main():
+    # Build covariate names list
+    covariate_names = ', '.join([cov['name'] for cov in COVARIATES])
+
     print("="*80)
-    print("Cotton Futures Multivariate Zero-Shot Forecasting with Chronos-2")
-    print("Covariates: Crude Oil, Copper Futures, Calendar Features")
-    print("Evaluation Mode: Predicting on Last 7 Days (Holdout)")
+    print(f"{TARGET_NAME} Multivariate Zero-Shot Forecasting with Chronos-2")
+    print(f"Covariates: {covariate_names}, Calendar Features")
+    print(f"Evaluation Mode: Predicting on Last {PREDICTION_LENGTH} Days (Holdout)")
     print("="*80)
 
-    # Load all datasets
+    # Load target
     print("\nLoading datasets...")
-    cotton = load_csv_data(COTTON_PATH, "Cotton Futures")
-    crude = load_csv_data(CRUDE_PATH, "Crude Oil")
-    copper = load_csv_data(COPPER_PATH, "Copper Futures")
+    import os
+    target_path = os.path.join(DATA_FOLDER, TARGET_FILE)
+    target = load_csv_data(target_path, TARGET_NAME)
+
+    # Load all covariates dynamically
+    covariates_dict = {}
+    for cov in COVARIATES:
+        cov_path = os.path.join(DATA_FOLDER, cov['file'])
+        covariates_dict[cov['name']] = load_csv_data(cov_path, cov['name'])
 
     # Align data to common dates
-    combined_data = align_data(cotton, crude, copper)
+    combined_data = align_data(target, covariates_dict)
 
-    # Split: use all except last 7 days for training
+    # Get covariate column names (all columns except 'target')
+    covariate_columns = [col for col in combined_data.columns if col != 'target']
+
+    # Split: use all except last N days for testing
     test_start_idx = len(combined_data) - PREDICTION_LENGTH
     test_dates = combined_data.index[test_start_idx:]
-    actual_prices = combined_data['cotton'].iloc[test_start_idx:].values
+    actual_prices = combined_data['target'].iloc[test_start_idx:].values
 
     print(f"\nTrain period: {combined_data.index[0].strftime('%Y-%m-%d')} to " +
           f"{combined_data.index[test_start_idx - 1].strftime('%Y-%m-%d')}")
@@ -295,7 +344,7 @@ def main():
     print(f"Test size:  {PREDICTION_LENGTH} days")
 
     # Run multivariate inference
-    forecast = run_inference(combined_data, test_start_idx)
+    forecast = run_inference(combined_data, test_start_idx, covariate_columns)
 
     # Calculate metrics
     metrics = calculate_metrics(forecast, actual_prices)
@@ -304,10 +353,10 @@ def main():
     print_metrics(metrics, actual_prices, test_dates)
 
     # Plot results
-    plot_results(combined_data, test_start_idx, forecast, actual_prices, test_dates)
+    plot_results(combined_data, test_start_idx, forecast, actual_prices, test_dates, TARGET_NAME)
 
     print("\nDone!")
-    print("\nNOTE: This forecast uses Crude Oil and Copper prices as covariates,")
+    print(f"\nNOTE: This forecast uses {covariate_names} as covariates,")
     print("      plus calendar features (month, day of week, quarter).")
 
 if __name__ == "__main__":

@@ -1,0 +1,112 @@
+================================================================================
+Cotton Futures Rolling Forecasting with Chronos-2
+Covariates: Crude Oil, Copper Futures
+Method: Rolling window (predict d1, then predict d2 with d1 actual, etc.)
+================================================================================
+
+Loading datasets...
+Cotton Futures  -  2772 points, 2014-12-01 to 2025-12-08, range: $48.41 to $158.02
+Crude Oil       -  2772 points, 2014-12-01 to 2025-12-08, range: $-37.63 to $123.70
+Copper Futures  -  2772 points, 2014-12-01 to 2025-12-08, range: $1.94 to $5.80
+
+Before alignment: 2773 dates
+Missing values - Cotton: 1, Crude: 1, Copper: 1
+After alignment:  2773 dates
+Date range: 2014-12-01 to 2025-12-08
+
+Train period: 2014-12-01 to 2025-11-26
+Test period:  2025-11-28 to 2025-12-08
+Train size: 2766 days
+Test size:  7 days
+
+Loading Chronos-2 model: amazon/chronos-2
+
+================================================================================
+Running Rolling Forecast...
+================================================================================
+
+Day 1/7: Predicting 2025-11-28
+  Context size: 2766 days
+  Previous: $62.77
+  Actual: $62.91, Predicted: $62.50, Error: $0.41
+  Direction - Predicted: DOWN, Actual: UP ✗
+
+Day 2/7: Predicting 2025-12-01
+  Context size: 2767 days
+  Previous: $62.91
+  Actual: $62.83, Predicted: $62.50, Error: $0.33
+  Direction - Predicted: DOWN, Actual: DOWN ✓
+
+Day 3/7: Predicting 2025-12-02
+  Context size: 2768 days
+  Previous: $62.83
+  Actual: $62.77, Predicted: $62.75, Error: $0.02
+  Direction - Predicted: DOWN, Actual: DOWN ✓
+
+Day 4/7: Predicting 2025-12-03
+  Context size: 2769 days
+  Previous: $62.77
+  Actual: $62.66, Predicted: $62.25, Error: $0.41
+  Direction - Predicted: DOWN, Actual: DOWN ✓
+
+Day 5/7: Predicting 2025-12-04
+  Context size: 2770 days
+  Previous: $62.66
+  Actual: $62.28, Predicted: $62.25, Error: $0.03
+  Direction - Predicted: DOWN, Actual: DOWN ✓
+
+Day 6/7: Predicting 2025-12-05
+  Context size: 2771 days
+  Previous: $62.28
+  Actual: $62.13, Predicted: $62.00, Error: $0.13
+  Direction - Predicted: DOWN, Actual: DOWN ✓
+
+Day 7/7: Predicting 2025-12-08
+  Context size: 2772 days
+  Previous: $62.13
+  Actual: $64.29, Predicted: $62.00, Error: $2.29
+  Direction - Predicted: DOWN, Actual: UP ✗
+
+================================================================================
+REGRESSION METRICS
+================================================================================
+Mean Absolute Error (MAE):       $0.5171
+Mean Squared Error (MSE):        $0.8153
+Root Mean Squared Error (RMSE):  $0.9030
+Mean Absolute Percentage Error:  0.81%
+================================================================================
+
+================================================================================
+CLASSIFICATION METRICS (Direction Prediction: UP vs DOWN)
+================================================================================
+Accuracy:   0.7143 (71.43%)
+Precision:  0.0000 (0.00%)
+Recall:     0.0000 (0.00%)
+F1-Score:   0.0000
+================================================================================
+Note: Positive class = UP, Negative class = DOWN
+
+================================================================================
+DAY-BY-DAY COMPARISON
+================================================================================
+Date         Actual     Predicted  Error      Error %    Pred Dir   Actual Dir  Correct 
+--------------------------------------------------------------------------------
+2025-11-28   $62.91     $62.50     $0.41      0.65     % DOWN       UP          ✗       
+2025-12-01   $62.83     $62.50     $0.33      0.53     % DOWN       DOWN        ✓       
+2025-12-02   $62.77     $62.75     $0.02      0.03     % DOWN       DOWN        ✓       
+2025-12-03   $62.66     $62.25     $0.41      0.65     % DOWN       DOWN        ✓       
+2025-12-04   $62.28     $62.25     $0.03      0.05     % DOWN       DOWN        ✓       
+2025-12-05   $62.13     $62.00     $0.13      0.21     % DOWN       DOWN        ✓       
+2025-12-08   $64.29     $62.00     $2.29      3.56     % DOWN       UP          ✗       
+================================================================================
+
+Forecast plot saved to: experiments_zeroshot/rolling/forecast_rolling_plot.png
+Metrics plot saved to: experiments_zeroshot/rolling/forecast_rolling_metrics_plot.png
+
+Done!
+
+NOTE: This rolling forecast updates context with actual values after each prediction,
+      simulating real-world sequential forecasting where we learn from recent outcomes.
+
+CLASSIFICATION: Direction prediction compares each day's price to the previous day.
+                UP = price increased, DOWN = price decreased or stayed same.
