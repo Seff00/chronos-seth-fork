@@ -49,3 +49,5 @@ experiments:
 - predict returns (vs price) === with lora?
 - predict copper price (vs cotton price as target) === with lora?
 - full finetuning
+
+to do edit plot: not outputting cotton features
