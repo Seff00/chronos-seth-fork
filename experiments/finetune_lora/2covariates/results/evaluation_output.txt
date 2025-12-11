@@ -1,0 +1,260 @@
+================================================================================
+lora_2covariates - Evaluation
+LoRA fine-tuning with 2 covariates (Crude Oil + Copper)
+================================================================================
+Loading unified commodity dataset...
+Total data: 2511 days
+Date range: 2015-12-01 to 2025-11-28
+
+Prepared data with 2511 days
+Target: Cotton_Futures_Close
+Covariates (2): Crude_Oil_Close, Copper_Futures_Close
+
+Test period: 2025-10-17 to 2025-11-28
+Test size: 30 days
+
+Loading fine-tuned model from: 2covariates/results/checkpoint\finetuned-ckpt
+
+================================================================================
+Running Rolling Forecast on Test Set...
+================================================================================
+
+Day 1/30: Predicting 2025-10-17
+  Context size: 2481 days
+  Previous: $63.73
+  Actual: $64.28, Predicted: $63.75, Error: $0.53
+  Direction - Predicted: UP, Actual: UP ✓
+
+Day 2/30: Predicting 2025-10-20
+  Context size: 2482 days
+  Previous: $64.28
+  Actual: $64.16, Predicted: $64.50, Error: $-0.34
+  Direction - Predicted: UP, Actual: DOWN ✗
+
+Day 3/30: Predicting 2025-10-21
+  Context size: 2483 days
+  Previous: $64.16
+  Actual: $64.42, Predicted: $64.00, Error: $0.42
+  Direction - Predicted: DOWN, Actual: UP ✗
+
+Day 4/30: Predicting 2025-10-22
+  Context size: 2484 days
+  Previous: $64.42
+  Actual: $63.74, Predicted: $64.50, Error: $-0.76
+  Direction - Predicted: UP, Actual: DOWN ✗
+
+Day 5/30: Predicting 2025-10-23
+  Context size: 2485 days
+  Previous: $63.74
+  Actual: $64.07, Predicted: $63.75, Error: $0.32
+  Direction - Predicted: UP, Actual: UP ✓
+
+Day 6/30: Predicting 2025-10-24
+  Context size: 2486 days
+  Previous: $64.07
+  Actual: $64.20, Predicted: $64.00, Error: $0.20
+  Direction - Predicted: DOWN, Actual: UP ✗
+
+Day 7/30: Predicting 2025-10-27
+  Context size: 2487 days
+  Previous: $64.20
+  Actual: $64.56, Predicted: $64.00, Error: $0.56
+  Direction - Predicted: DOWN, Actual: UP ✗
+
+Day 8/30: Predicting 2025-10-28
+  Context size: 2488 days
+  Previous: $64.56
+  Actual: $65.05, Predicted: $64.50, Error: $0.55
+  Direction - Predicted: DOWN, Actual: UP ✗
+
+Day 9/30: Predicting 2025-10-29
+  Context size: 2489 days
+  Previous: $65.05
+  Actual: $66.01, Predicted: $65.00, Error: $1.01
+  Direction - Predicted: DOWN, Actual: UP ✗
+
+Day 10/30: Predicting 2025-10-30
+  Context size: 2490 days
+  Previous: $66.01
+  Actual: $65.12, Predicted: $65.50, Error: $-0.38
+  Direction - Predicted: DOWN, Actual: DOWN ✓
+
+Day 11/30: Predicting 2025-10-31
+  Context size: 2491 days
+  Previous: $65.12
+  Actual: $65.54, Predicted: $65.00, Error: $0.54
+  Direction - Predicted: DOWN, Actual: UP ✗
+
+Day 12/30: Predicting 2025-11-03
+  Context size: 2492 days
+  Previous: $65.54
+  Actual: $65.68, Predicted: $65.50, Error: $0.18
+  Direction - Predicted: DOWN, Actual: UP ✗
+
+Day 13/30: Predicting 2025-11-04
+  Context size: 2493 days
+  Previous: $65.68
+  Actual: $65.20, Predicted: $65.50, Error: $-0.30
+  Direction - Predicted: DOWN, Actual: DOWN ✓
+
+Day 14/30: Predicting 2025-11-05
+  Context size: 2494 days
+  Previous: $65.20
+  Actual: $65.23, Predicted: $65.00, Error: $0.23
+  Direction - Predicted: DOWN, Actual: UP ✗
+
+Day 15/30: Predicting 2025-11-06
+  Context size: 2495 days
+  Previous: $65.23
+  Actual: $64.54, Predicted: $65.00, Error: $-0.46
+  Direction - Predicted: DOWN, Actual: DOWN ✓
+
+Day 16/30: Predicting 2025-11-07
+  Context size: 2496 days
+  Previous: $64.54
+  Actual: $63.62, Predicted: $64.50, Error: $-0.88
+  Direction - Predicted: DOWN, Actual: DOWN ✓
+
+Day 17/30: Predicting 2025-11-10
+  Context size: 2497 days
+  Previous: $63.62
+  Actual: $64.31, Predicted: $64.00, Error: $0.31
+  Direction - Predicted: UP, Actual: UP ✓
+
+Day 18/30: Predicting 2025-11-11
+  Context size: 2498 days
+  Previous: $64.31
+  Actual: $63.88, Predicted: $64.50, Error: $-0.62
+  Direction - Predicted: UP, Actual: DOWN ✗
+
+Day 19/30: Predicting 2025-11-12
+  Context size: 2499 days
+  Previous: $63.88
+  Actual: $63.30, Predicted: $64.00, Error: $-0.70
+  Direction - Predicted: UP, Actual: DOWN ✗
+
+Day 20/30: Predicting 2025-11-13
+  Context size: 2500 days
+  Previous: $63.30
+  Actual: $62.90, Predicted: $63.50, Error: $-0.60
+  Direction - Predicted: UP, Actual: DOWN ✗
+
+Day 21/30: Predicting 2025-11-14
+  Context size: 2501 days
+  Previous: $62.90
+  Actual: $62.49, Predicted: $63.25, Error: $-0.76
+  Direction - Predicted: UP, Actual: DOWN ✗
+
+Day 22/30: Predicting 2025-11-17
+  Context size: 2502 days
+  Previous: $62.49
+  Actual: $62.36, Predicted: $62.75, Error: $-0.39
+  Direction - Predicted: UP, Actual: DOWN ✗
+
+Day 23/30: Predicting 2025-11-18
+  Context size: 2503 days
+  Previous: $62.36
+  Actual: $62.57, Predicted: $62.50, Error: $0.07
+  Direction - Predicted: UP, Actual: UP ✓
+
+Day 24/30: Predicting 2025-11-19
+  Context size: 2504 days
+  Previous: $62.57
+  Actual: $62.30, Predicted: $62.75, Error: $-0.45
+  Direction - Predicted: UP, Actual: DOWN ✗
+
+Day 25/30: Predicting 2025-11-20
+  Context size: 2505 days
+  Previous: $62.30
+  Actual: $61.68, Predicted: $62.50, Error: $-0.82
+  Direction - Predicted: UP, Actual: DOWN ✗
+
+Day 26/30: Predicting 2025-11-21
+  Context size: 2506 days
+  Previous: $61.68
+  Actual: $61.35, Predicted: $61.75, Error: $-0.40
+  Direction - Predicted: UP, Actual: DOWN ✗
+
+Day 27/30: Predicting 2025-11-24
+  Context size: 2507 days
+  Previous: $61.35
+  Actual: $61.44, Predicted: $61.50, Error: $-0.06
+  Direction - Predicted: UP, Actual: UP ✓
+
+Day 28/30: Predicting 2025-11-25
+  Context size: 2508 days
+  Previous: $61.44
+  Actual: $62.43, Predicted: $61.50, Error: $0.93
+  Direction - Predicted: UP, Actual: UP ✓
+
+Day 29/30: Predicting 2025-11-26
+  Context size: 2509 days
+  Previous: $62.43
+  Actual: $62.77, Predicted: $62.75, Error: $0.02
+  Direction - Predicted: UP, Actual: UP ✓
+
+Day 30/30: Predicting 2025-11-28
+  Context size: 2510 days
+  Previous: $62.77
+  Actual: $62.91, Predicted: $63.25, Error: $-0.34
+  Direction - Predicted: UP, Actual: UP ✓
+
+================================================================================
+
+================================================================================
+REGRESSION METRICS
+================================================================================
+Mean Absolute Error (MAE):       $0.4710
+Mean Squared Error (MSE):        $0.2870
+Root Mean Squared Error (RMSE):  $0.5358
+Mean Absolute Percentage Error:  0.74%
+================================================================================
+
+================================================================================
+CLASSIFICATION METRICS (Direction Prediction: UP vs DOWN)
+================================================================================
+Accuracy:   0.4000 (40.00%)
+Precision:  0.4444 (44.44%)
+Recall:     0.5000 (50.00%)
+F1-Score:   0.4706
+================================================================================
+Note: Positive class = UP, Negative class = DOWN
+
+================================================================================
+DAY-BY-DAY COMPARISON
+================================================================================
+Date         Actual     Predicted  Error      Error %    Pred Dir   Actual Dir  Correct 
+--------------------------------------------------------------------------------
+2025-10-17   $64.28     $63.75     $0.53      0.82     % UP         UP          ✓       
+2025-10-20   $64.16     $64.50     $-0.34     -0.53    % UP         DOWN        ✗       
+2025-10-21   $64.42     $64.00     $0.42      0.65     % DOWN       UP          ✗       
+2025-10-22   $63.74     $64.50     $-0.76     -1.19    % UP         DOWN        ✗       
+2025-10-23   $64.07     $63.75     $0.32      0.50     % UP         UP          ✓       
+2025-10-24   $64.20     $64.00     $0.20      0.31     % DOWN       UP          ✗       
+2025-10-27   $64.56     $64.00     $0.56      0.87     % DOWN       UP          ✗       
+2025-10-28   $65.05     $64.50     $0.55      0.85     % DOWN       UP          ✗       
+2025-10-29   $66.01     $65.00     $1.01      1.53     % DOWN       UP          ✗       
+2025-10-30   $65.12     $65.50     $-0.38     -0.58    % DOWN       DOWN        ✓       
+2025-10-31   $65.54     $65.00     $0.54      0.82     % DOWN       UP          ✗       
+2025-11-03   $65.68     $65.50     $0.18      0.27     % DOWN       UP          ✗       
+2025-11-04   $65.20     $65.50     $-0.30     -0.46    % DOWN       DOWN        ✓       
+2025-11-05   $65.23     $65.00     $0.23      0.35     % DOWN       UP          ✗       
+2025-11-06   $64.54     $65.00     $-0.46     -0.71    % DOWN       DOWN        ✓       
+2025-11-07   $63.62     $64.50     $-0.88     -1.38    % DOWN       DOWN        ✓       
+2025-11-10   $64.31     $64.00     $0.31      0.48     % UP         UP          ✓       
+2025-11-11   $63.88     $64.50     $-0.62     -0.97    % UP         DOWN        ✗       
+2025-11-12   $63.30     $64.00     $-0.70     -1.11    % UP         DOWN        ✗       
+2025-11-13   $62.90     $63.50     $-0.60     -0.95    % UP         DOWN        ✗       
+2025-11-14   $62.49     $63.25     $-0.76     -1.22    % UP         DOWN        ✗       
+2025-11-17   $62.36     $62.75     $-0.39     -0.63    % UP         DOWN        ✗       
+2025-11-18   $62.57     $62.50     $0.07      0.11     % UP         UP          ✓       
+2025-11-19   $62.30     $62.75     $-0.45     -0.72    % UP         DOWN        ✗       
+2025-11-20   $61.68     $62.50     $-0.82     -1.33    % UP         DOWN        ✗       
+2025-11-21   $61.35     $61.75     $-0.40     -0.65    % UP         DOWN        ✗       
+2025-11-24   $61.44     $61.50     $-0.06     -0.10    % UP         UP          ✓       
+2025-11-25   $62.43     $61.50     $0.93      1.49     % UP         UP          ✓       
+2025-11-26   $62.77     $62.75     $0.02      0.03     % UP         UP          ✓       
+2025-11-28   $62.91     $63.25     $-0.34     -0.54    % UP         UP          ✓       
+================================================================================
+
+Done!

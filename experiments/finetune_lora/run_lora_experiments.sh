@@ -18,28 +18,28 @@ if ! command -v python &> /dev/null; then
     exit 1
 fi
 
-# Run Experiment 1: 2 Covariates
-echo "Starting Experiment 1: 2 Covariates (Crude Oil + Copper)"
-echo "----------------------------------"
-echo "Step 1/2: Training..."
-python train.py 2covariates/config.yaml
-if [ $? -ne 0 ]; then
-    echo "Error: Experiment 1 training failed!"
-    exit 1
-fi
-echo ""
-echo "Step 2/2: Evaluating..."
-python evaluate.py 2covariates/config.yaml
-if [ $? -ne 0 ]; then
-    echo "Error: Experiment 1 evaluation failed!"
-    exit 1
-fi
-echo ""
-echo "Experiment 1 completed successfully!"
-echo ""
+# # Run Experiment 1: 2 Covariates
+# echo "Starting Experiment 1: 2 Covariates (Crude Oil + Copper)"
+# echo "----------------------------------"
+# echo "Step 1/2: Training..."
+# python train.py 2covariates/config.yaml
+# if [ $? -ne 0 ]; then
+#     echo "Error: Experiment 1 training failed!"
+#     exit 1
+# fi
+# echo ""
+# echo "Step 2/2: Evaluating..."
+# python evaluate.py 2covariates/config.yaml
+# if [ $? -ne 0 ]; then
+#     echo "Error: Experiment 1 evaluation failed!"
+#     exit 1
+# fi
+# echo ""
+# echo "Experiment 1 completed successfully!"
+# echo ""
 
 # Wait a bit before starting next experiment
-sleep 2
+# sleep 2
 
 # Run Experiment 2: All Covariates
 echo "Starting Experiment 2: All Covariates"
