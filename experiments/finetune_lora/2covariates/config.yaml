@@ -1,0 +1,37 @@
+# LoRA Fine-tuning with 2 Covariates Configuration
+# Fine-tune Chronos-2 using Crude Oil and Copper as covariates
+
+experiment:
+  name: "lora_2covariates"
+  description: "LoRA fine-tuning with 2 covariates (Crude Oil + Copper)"
+
+data:
+  unified_data_path: "C:\\Users\\Seth\\Desktop\\AIAP\\proj\\commodity-forecasting\\data\\processed"
+  target_column: "Cotton_Futures_Close"
+  covariate_columns:
+    - "Crude_Oil_Close"
+    - "Copper_Futures_Close"
+
+model:
+  name: "amazon/chronos-2"
+  device_map: "auto"
+  torch_dtype: "bfloat16"
+
+training:
+  finetune_mode: "lora"
+  learning_rate: 0.00001  # 1e-5
+  num_steps: 500
+  batch_size: 256
+  context_length: 365  # Use last year as context
+  prediction_length: 1  # 1-day ahead
+  validation_inputs: null  # No validation
+
+forecast:
+  prediction_days: 30  # Rolling prediction for 30 days on test set
+  quantile_levels: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+
+output:
+  output_dir: "./experiments/finetune_lora/2covariates/results"
+  checkpoint_dir: "./experiments/finetune_lora/2covariates/results/checkpoint"
+  save_plots: true
+  save_metrics: true

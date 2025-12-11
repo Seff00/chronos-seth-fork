@@ -1,0 +1,29 @@
+# Zero-shot Multivariate Experiment Configuration
+# Forecast cotton futures using historical prices + Crude Oil + Copper as covariates
+
+experiment:
+  name: "zeroshot_multivariate"
+  description: "Zero-shot rolling forecast with Crude Oil and Copper covariates"
+
+data:
+  unified_data_path: "C:\\Users\\Seth\\Desktop\\AIAP\\proj\\commodity-forecasting\\data\\processed"
+  target_column: "Cotton_Futures_Close"
+  covariate_columns:
+    - "Crude_Oil_Close"
+    - "Copper_Futures_Close"
+
+model:
+  name: "amazon/chronos-2"
+  device_map: "auto"
+  torch_dtype: "bfloat16"
+
+forecast:
+  prediction_days: 30  # Rolling prediction for 30 days
+  prediction_length: 1  # 1-day ahead
+  context_length: 1024  # Use last 1024 days for context
+  quantile_levels: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+
+output:
+  output_dir: "./experiments/zeroshot/multivariate/results"
+  save_plots: true
+  save_metrics: true
