@@ -319,7 +319,7 @@ forecast:
   prediction_days: 30
   prediction_length: 1
   context_length: 1024
-  quantile_levels: [0.1, 0.2, ..., 0.9]
+  quantile_levels: [0.01, 0.05, 0.1, ..., 0.95, 0.99]  # 21 quantiles
 
 # For LoRA experiments (additional)
 training:
