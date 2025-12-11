@@ -1,12 +1,12 @@
 ================================================================================
-zeroshot_univariate
-Zero-shot rolling forecast using only historical cotton prices
+zeroshot_multivariate
+Zero-shot rolling forecast with Crude Oil and Copper covariates
 ================================================================================
 Loading unified commodity dataset...
 Total data: 2511 days
 Date range: 2015-12-01 to 2025-11-28
 Target: Cotton_Futures_Close
-Covariates: None (univariate)
+Covariates: ['Crude_Oil_Close', 'Copper_Futures_Close']
 
 Train period: 2015-12-01 to 2025-10-16
 Test period:  2025-10-17 to 2025-11-28
@@ -52,25 +52,25 @@ Day 5/30: Predicting 2025-10-23
 Day 6/30: Predicting 2025-10-24
   Context size: 2486 days
   Previous: $64.07
-  Actual: $64.20, Predicted: $63.50, Error: $0.70
+  Actual: $64.20, Predicted: $63.75, Error: $0.45
   Direction - Predicted: DOWN, Actual: UP ✗
 
 Day 7/30: Predicting 2025-10-27
   Context size: 2487 days
   Previous: $64.20
-  Actual: $64.56, Predicted: $63.50, Error: $1.06
+  Actual: $64.56, Predicted: $63.25, Error: $1.31
   Direction - Predicted: DOWN, Actual: UP ✗
 
 Day 8/30: Predicting 2025-10-28
   Context size: 2488 days
   Previous: $64.56
-  Actual: $65.05, Predicted: $63.75, Error: $1.30
+  Actual: $65.05, Predicted: $64.00, Error: $1.05
   Direction - Predicted: DOWN, Actual: UP ✗
 
 Day 9/30: Predicting 2025-10-29
   Context size: 2489 days
   Previous: $65.05
-  Actual: $66.01, Predicted: $64.00, Error: $2.01
+  Actual: $66.01, Predicted: $64.50, Error: $1.51
   Direction - Predicted: DOWN, Actual: UP ✗
 
 Day 10/30: Predicting 2025-10-30
@@ -82,7 +82,7 @@ Day 10/30: Predicting 2025-10-30
 Day 11/30: Predicting 2025-10-31
   Context size: 2491 days
   Previous: $65.12
-  Actual: $65.54, Predicted: $64.00, Error: $1.54
+  Actual: $65.54, Predicted: $64.50, Error: $1.04
   Direction - Predicted: DOWN, Actual: UP ✗
 
 Day 12/30: Predicting 2025-11-03
@@ -112,91 +112,91 @@ Day 15/30: Predicting 2025-11-06
 Day 16/30: Predicting 2025-11-07
   Context size: 2496 days
   Previous: $64.54
-  Actual: $63.62, Predicted: $63.75, Error: $-0.13
+  Actual: $63.62, Predicted: $64.00, Error: $-0.38
   Direction - Predicted: DOWN, Actual: DOWN ✓
 
 Day 17/30: Predicting 2025-11-10
   Context size: 2497 days
   Previous: $63.62
-  Actual: $64.31, Predicted: $62.75, Error: $1.56
+  Actual: $64.31, Predicted: $63.25, Error: $1.06
   Direction - Predicted: DOWN, Actual: UP ✗
 
 Day 18/30: Predicting 2025-11-11
   Context size: 2498 days
   Previous: $64.31
-  Actual: $63.88, Predicted: $63.50, Error: $0.38
+  Actual: $63.88, Predicted: $64.00, Error: $-0.12
   Direction - Predicted: DOWN, Actual: DOWN ✓
 
 Day 19/30: Predicting 2025-11-12
   Context size: 2499 days
   Previous: $63.88
-  Actual: $63.30, Predicted: $63.00, Error: $0.30
+  Actual: $63.30, Predicted: $63.50, Error: $-0.20
   Direction - Predicted: DOWN, Actual: DOWN ✓
 
 Day 20/30: Predicting 2025-11-13
   Context size: 2500 days
   Previous: $63.30
-  Actual: $62.90, Predicted: $62.75, Error: $0.15
+  Actual: $62.90, Predicted: $63.25, Error: $-0.35
   Direction - Predicted: DOWN, Actual: DOWN ✓
 
 Day 21/30: Predicting 2025-11-14
   Context size: 2501 days
   Previous: $62.90
-  Actual: $62.49, Predicted: $62.00, Error: $0.49
+  Actual: $62.49, Predicted: $62.50, Error: $-0.01
   Direction - Predicted: DOWN, Actual: DOWN ✓
 
 Day 22/30: Predicting 2025-11-17
   Context size: 2502 days
   Previous: $62.49
-  Actual: $62.36, Predicted: $61.50, Error: $0.86
+  Actual: $62.36, Predicted: $62.00, Error: $0.36
   Direction - Predicted: DOWN, Actual: DOWN ✓
 
 Day 23/30: Predicting 2025-11-18
   Context size: 2503 days
   Previous: $62.36
-  Actual: $62.57, Predicted: $61.25, Error: $1.32
+  Actual: $62.57, Predicted: $62.00, Error: $0.57
   Direction - Predicted: DOWN, Actual: UP ✗
 
 Day 24/30: Predicting 2025-11-19
   Context size: 2504 days
   Previous: $62.57
-  Actual: $62.30, Predicted: $61.50, Error: $0.80
+  Actual: $62.30, Predicted: $62.00, Error: $0.30
   Direction - Predicted: DOWN, Actual: DOWN ✓
 
 Day 25/30: Predicting 2025-11-20
   Context size: 2505 days
   Previous: $62.30
-  Actual: $61.68, Predicted: $61.50, Error: $0.18
+  Actual: $61.68, Predicted: $62.00, Error: $-0.32
   Direction - Predicted: DOWN, Actual: DOWN ✓
 
 Day 26/30: Predicting 2025-11-21
   Context size: 2506 days
   Previous: $61.68
-  Actual: $61.35, Predicted: $61.00, Error: $0.35
+  Actual: $61.35, Predicted: $61.25, Error: $0.10
   Direction - Predicted: DOWN, Actual: DOWN ✓
 
 Day 27/30: Predicting 2025-11-24
   Context size: 2507 days
   Previous: $61.35
-  Actual: $61.44, Predicted: $60.25, Error: $1.19
+  Actual: $61.44, Predicted: $61.00, Error: $0.44
   Direction - Predicted: DOWN, Actual: UP ✗
 
 Day 28/30: Predicting 2025-11-25
   Context size: 2508 days
   Previous: $61.44
-  Actual: $62.43, Predicted: $60.50, Error: $1.93
+  Actual: $62.43, Predicted: $61.00, Error: $1.43
   Direction - Predicted: DOWN, Actual: UP ✗
 
 Day 29/30: Predicting 2025-11-26
   Context size: 2509 days
   Previous: $62.43
-  Actual: $62.77, Predicted: $61.25, Error: $1.52
+  Actual: $62.77, Predicted: $62.00, Error: $0.77
   Direction - Predicted: DOWN, Actual: UP ✗
 
 Day 30/30: Predicting 2025-11-28
   Context size: 2510 days
   Previous: $62.77
-  Actual: $62.91, Predicted: $61.75, Error: $1.16
+  Actual: $62.91, Predicted: $62.50, Error: $0.41
   Direction - Predicted: DOWN, Actual: UP ✗
 
 ================================================================================
@@ -204,10 +204,10 @@ Day 30/30: Predicting 2025-11-28
 ================================================================================
 REGRESSION METRICS
 ================================================================================
-Mean Absolute Error (MAE):       $0.8207
-Mean Squared Error (MSE):        $0.9813
-Root Mean Squared Error (RMSE):  $0.9906
-Mean Absolute Percentage Error:  1.29%
+Mean Absolute Error (MAE):       $0.5957
+Mean Squared Error (MSE):        $0.5395
+Root Mean Squared Error (RMSE):  $0.7345
+Mean Absolute Percentage Error:  0.93%
 ================================================================================
 
 ================================================================================
@@ -230,34 +230,36 @@ Date         Actual     Predicted  Error      Error %    Pred Dir   Actual Dir  
 2025-10-21   $64.42     $63.50     $0.92      1.43     % DOWN       UP          ✗       
 2025-10-22   $63.74     $63.50     $0.24      0.38     % DOWN       DOWN        ✓       
 2025-10-23   $64.07     $63.25     $0.82      1.28     % DOWN       UP          ✗       
-2025-10-24   $64.20     $63.50     $0.70      1.09     % DOWN       UP          ✗       
-2025-10-27   $64.56     $63.50     $1.06      1.64     % DOWN       UP          ✗       
-2025-10-28   $65.05     $63.75     $1.30      2.00     % DOWN       UP          ✗       
-2025-10-29   $66.01     $64.00     $2.01      3.04     % DOWN       UP          ✗       
+2025-10-24   $64.20     $63.75     $0.45      0.70     % DOWN       UP          ✗       
+2025-10-27   $64.56     $63.25     $1.31      2.03     % DOWN       UP          ✗       
+2025-10-28   $65.05     $64.00     $1.05      1.61     % DOWN       UP          ✗       
+2025-10-29   $66.01     $64.50     $1.51      2.29     % DOWN       UP          ✗       
 2025-10-30   $65.12     $65.00     $0.12      0.18     % DOWN       DOWN        ✓       
-2025-10-31   $65.54     $64.00     $1.54      2.35     % DOWN       UP          ✗       
+2025-10-31   $65.54     $64.50     $1.04      1.59     % DOWN       UP          ✗       
 2025-11-03   $65.68     $65.00     $0.68      1.04     % DOWN       UP          ✗       
 2025-11-04   $65.20     $65.00     $0.20      0.31     % DOWN       DOWN        ✓       
 2025-11-05   $65.23     $64.50     $0.73      1.12     % DOWN       UP          ✗       
 2025-11-06   $64.54     $64.50     $0.04      0.06     % DOWN       DOWN        ✓       
-2025-11-07   $63.62     $63.75     $-0.13     -0.20    % DOWN       DOWN        ✓       
-2025-11-10   $64.31     $62.75     $1.56      2.43     % DOWN       UP          ✗       
-2025-11-11   $63.88     $63.50     $0.38      0.59     % DOWN       DOWN        ✓       
-2025-11-12   $63.30     $63.00     $0.30      0.47     % DOWN       DOWN        ✓       
-2025-11-13   $62.90     $62.75     $0.15      0.24     % DOWN       DOWN        ✓       
-2025-11-14   $62.49     $62.00     $0.49      0.78     % DOWN       DOWN        ✓       
-2025-11-17   $62.36     $61.50     $0.86      1.38     % DOWN       DOWN        ✓       
-2025-11-18   $62.57     $61.25     $1.32      2.11     % DOWN       UP          ✗       
-2025-11-19   $62.30     $61.50     $0.80      1.28     % DOWN       DOWN        ✓       
-2025-11-20   $61.68     $61.50     $0.18      0.29     % DOWN       DOWN        ✓       
-2025-11-21   $61.35     $61.00     $0.35      0.57     % DOWN       DOWN        ✓       
-2025-11-24   $61.44     $60.25     $1.19      1.94     % DOWN       UP          ✗       
-2025-11-25   $62.43     $60.50     $1.93      3.09     % DOWN       UP          ✗       
-2025-11-26   $62.77     $61.25     $1.52      2.42     % DOWN       UP          ✗       
-2025-11-28   $62.91     $61.75     $1.16      1.84     % DOWN       UP          ✗       
+2025-11-07   $63.62     $64.00     $-0.38     -0.60    % DOWN       DOWN        ✓       
+2025-11-10   $64.31     $63.25     $1.06      1.65     % DOWN       UP          ✗       
+2025-11-11   $63.88     $64.00     $-0.12     -0.19    % DOWN       DOWN        ✓       
+2025-11-12   $63.30     $63.50     $-0.20     -0.32    % DOWN       DOWN        ✓       
+2025-11-13   $62.90     $63.25     $-0.35     -0.56    % DOWN       DOWN        ✓       
+2025-11-14   $62.49     $62.50     $-0.01     -0.02    % DOWN       DOWN        ✓       
+2025-11-17   $62.36     $62.00     $0.36      0.58     % DOWN       DOWN        ✓       
+2025-11-18   $62.57     $62.00     $0.57      0.91     % DOWN       UP          ✗       
+2025-11-19   $62.30     $62.00     $0.30      0.48     % DOWN       DOWN        ✓       
+2025-11-20   $61.68     $62.00     $-0.32     -0.52    % DOWN       DOWN        ✓       
+2025-11-21   $61.35     $61.25     $0.10      0.16     % DOWN       DOWN        ✓       
+2025-11-24   $61.44     $61.00     $0.44      0.72     % DOWN       UP          ✗       
+2025-11-25   $62.43     $61.00     $1.43      2.29     % DOWN       UP          ✗       
+2025-11-26   $62.77     $62.00     $0.77      1.23     % DOWN       UP          ✗       
+2025-11-28   $62.91     $62.50     $0.41      0.65     % DOWN       UP          ✗       
 ================================================================================
 
 Done!
 
-NOTE: This zero-shot univariate forecast uses only historical cotton prices
-      without any covariates or fine-tuning.
+NOTE: This zero-shot multivariate forecast uses 2 covariates:
+      - Crude_Oil_Close
+      - Copper_Futures_Close
+      Model is pretrained (no fine-tuning).
