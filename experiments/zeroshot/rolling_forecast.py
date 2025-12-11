@@ -1,7 +1,7 @@
 """
-Zero-shot Multivariate Rolling Forecasting on Cotton Futures using Chronos-2.
-Uses historical cotton prices + Crude Oil + Copper as covariates.
-Performs 1-day ahead rolling predictions for 30 days.
+Zero-shot Rolling Forecasting on Cotton Futures using Chronos-2.
+Configuration loaded from config.yaml passed as argument.
+Performs 1-day ahead rolling predictions.
 """
 
 import sys
@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from chronos import Chronos2Pipeline
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-def load_config(config_path="config.yaml"):
+def load_config(config_path):
     """Load configuration from YAML file."""
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
@@ -31,7 +31,7 @@ def load_unified_data(config):
     val_df = pd.read_csv(os.path.join(data_path, "val.csv"))
     test_df = pd.read_csv(os.path.join(data_path, "test.csv"))
 
-    # Combine all data
+    # Combine all data (val is used as part of training data, not for validation)
     combined_df = pd.concat([train_df, val_df, test_df], ignore_index=True)
 
     # Convert Date to datetime and set as index
@@ -79,8 +79,8 @@ def predict_single_day(pipeline, context_data, target_column, covariate_columns,
 
     # For univariate, just use target without covariates
     if not covariate_columns:
-        # Univariate: shape (1, seq_len)
-        input_tensor = torch.tensor(target).unsqueeze(0)
+        # Univariate: shape (n_series=1, n_variates=1, history_length)
+        input_tensor = torch.tensor(target).unsqueeze(0).unsqueeze(0)
         predictions = pipeline.predict(
             input_tensor,
             prediction_length=1,
@@ -293,9 +293,9 @@ def plot_forecast(combined_data, test_start_idx, forecasts, actual_values, test_
         ax.scatter(date, pred, color=color, s=75, marker='s',
                   edgecolor='black', linewidth=1, zorder=3, label=label)
 
+    covariate_str = ", ".join(config['data']['covariate_columns']) if config['data']['covariate_columns'] else "None"
     ax.set_xlabel('Date', fontsize=12)
     ax.set_ylabel('Cotton Futures Price (USD)', fontsize=12)
-    covariate_str = ", ".join(config['data']['covariate_columns']) if config['data']['covariate_columns'] else "None"
     ax.set_title(f'{config["experiment"]["name"]}: Rolling Forecast vs Actual\n' +
                  f'Covariates: {covariate_str}\n' +
                  '(Prediction colors: Green=UP, Red=DOWN)',
@@ -371,8 +371,16 @@ def plot_metrics_chart(forecasts, actual_values, test_dates, metrics, config):
     plt.close()
 
 def main():
+    # Check for config file argument
+    if len(sys.argv) != 2:
+        print("Usage: python rolling_forecast.py <config_path>")
+        print("Example: python rolling_forecast.py univariate/config.yaml")
+        sys.exit(1)
+
+    config_path = sys.argv[1]
+
     # Load configuration
-    config = load_config()
+    config = load_config(config_path)
 
     # Create output directory
     output_dir = config['output']['output_dir']
@@ -402,7 +410,7 @@ def main():
               f"{combined_data.index[test_start_idx - 1].strftime('%Y-%m-%d')}")
         print(f"Test period:  {test_dates[0].strftime('%Y-%m-%d')} to " +
               f"{test_dates[-1].strftime('%Y-%m-%d')}")
-        print(f"Train size: {test_start_idx} days")
+        print(f"Train size: {test_start_idx} days (train+val combined)")
         print(f"Test size:  {prediction_days} days")
 
         # Load model

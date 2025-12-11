@@ -1,11 +1,11 @@
 """
-Zero-shot Univariate Rolling Forecasting on Cotton Futures using Chronos-2.
-Uses only historical cotton prices (no covariates).
-Performs 1-day ahead rolling predictions for 30 days.
+Evaluate fine-tuned Chronos-2 model on test set.
+Loads checkpoint and runs rolling 1-day ahead forecasting.
+Configuration loaded from config.yaml passed as argument.
 """
 
-import sys
 import os
+import sys
 import yaml
 import pandas as pd
 import numpy as np
@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from chronos import Chronos2Pipeline
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-def load_config(config_path="config.yaml"):
+def load_config(config_path):
     """Load configuration from YAML file."""
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
@@ -31,7 +31,7 @@ def load_unified_data(config):
     val_df = pd.read_csv(os.path.join(data_path, "val.csv"))
     test_df = pd.read_csv(os.path.join(data_path, "test.csv"))
 
-    # Combine all data
+    # Combine all data (val is used as part of training data, not for validation)
     combined_df = pd.concat([train_df, val_df, test_df], ignore_index=True)
 
     # Convert Date to datetime and set as index
@@ -41,10 +41,38 @@ def load_unified_data(config):
 
     print(f"Total data: {len(combined_df)} days")
     print(f"Date range: {combined_df.index.min().strftime('%Y-%m-%d')} to {combined_df.index.max().strftime('%Y-%m-%d')}")
-    print(f"Target: {config['data']['target_column']}")
-    print(f"Covariates: {config['data']['covariate_columns'] if config['data']['covariate_columns'] else 'None (univariate)'}")
 
     return combined_df
+
+def prepare_data_for_training(combined_df, config):
+    """Prepare data with target and covariates."""
+    target_column = config['data']['target_column']
+    covariate_columns = config['data']['covariate_columns']
+
+    # Select target and covariates
+    columns_to_keep = [target_column] + covariate_columns
+    data = combined_df[columns_to_keep].copy()
+
+    # Rename target column to 'target' for consistency
+    data = data.rename(columns={target_column: 'target'})
+
+    print(f"\nPrepared data with {len(data)} days")
+    print(f"Target: {target_column}")
+    print(f"Covariates ({len(covariate_columns)}): {', '.join(covariate_columns)}")
+
+    return data
+
+def split_train_test(data, test_size):
+    """Split data chronologically into train and test sets."""
+    total_points = len(data)
+    test_start_idx = total_points - test_size
+
+    train_data = data.iloc[:test_start_idx]
+    test_data = data.iloc[test_start_idx:]
+
+    return train_data, test_data
+
+# Evaluation Functions
 
 def get_direction(current_price, previous_price):
     """Determine direction of price movement."""
@@ -64,59 +92,37 @@ def calculate_classification_metrics(predicted_directions, actual_directions):
         'accuracy': accuracy,
         'precision': precision,
         'recall': recall,
-        'f1_score': f1,
-        'y_pred': y_pred,
-        'y_true': y_true
+        'f1_score': f1
     }
 
-def predict_single_day(pipeline, context_data, target_column, covariate_columns, context_length):
+def predict_single_day(pipeline, context_data, covariate_columns, context_length):
     """Predict a single day using context data."""
-    # Get context (last context_length points)
     context = context_data.tail(context_length)
+    target = context['target'].values
 
-    # Prepare target
-    target = context[target_column].values
+    past_covariates = {}
+    for col in covariate_columns:
+        key = col.lower().replace('_close', '').replace('_', '_')
+        past_covariates[key] = context[col].values
 
-    # For univariate, just use target without covariates
-    if not covariate_columns:
-        # Univariate: shape (1, seq_len)
-        input_tensor = torch.tensor(target).unsqueeze(0)
-        predictions = pipeline.predict(
-            input_tensor,
-            prediction_length=1,
-        )
-    else:
-        # Multivariate: use dict format with past_covariates
-        past_covariates = {}
-        for col in covariate_columns:
-            key = col.lower().replace('_close', '').replace('_', '_')
-            past_covariates[key] = context[col].values
+    input_dict = {
+        "target": target,
+        "past_covariates": past_covariates
+    }
 
-        input_dict = {
-            "target": target,
-            "past_covariates": past_covariates
-        }
-
-        predictions = pipeline.predict(
-            [input_dict],
-            prediction_length=1,
-        )
-
-    # Extract predictions: (1, num_quantiles, 1) -> (num_quantiles,)
+    predictions = pipeline.predict([input_dict], prediction_length=1)
     forecast = predictions[0].squeeze().numpy()
 
     return forecast
 
 def run_rolling_forecast(pipeline, combined_data, test_start_idx, config):
-    """Run rolling forecast for the last prediction_days days."""
-    target_column = config['data']['target_column']
-    covariate_columns = config['data']['covariate_columns']
+    """Run rolling forecast for the test set."""
     prediction_days = config['forecast']['prediction_days']
-    context_length = config['forecast']['context_length']
+    context_length = config['training']['context_length']
     quantile_levels = config['forecast']['quantile_levels']
 
     print(f"\n" + "="*80)
-    print("Running Rolling Forecast...")
+    print("Running Rolling Forecast on Test Set...")
     print("="*80)
 
     rolling_forecasts = []
@@ -124,49 +130,38 @@ def run_rolling_forecast(pipeline, combined_data, test_start_idx, config):
     previous_actual_values = []
     test_dates = []
 
+    covariate_columns = [col for col in combined_data.columns if col != 'target']
+
     for day_offset in range(prediction_days):
         current_idx = test_start_idx + day_offset
         prediction_date = combined_data.index[current_idx]
 
-        # Context: everything before current_idx
         context_data = combined_data.iloc[:current_idx]
-
-        # Actual value for this day
-        actual_value = combined_data[target_column].iloc[current_idx]
-
-        # Previous day's actual value (for direction comparison)
-        previous_actual = combined_data[target_column].iloc[current_idx - 1]
+        actual_value = combined_data['target'].iloc[current_idx]
+        previous_actual = combined_data['target'].iloc[current_idx - 1]
 
         print(f"\nDay {day_offset + 1}/{prediction_days}: Predicting {prediction_date.strftime('%Y-%m-%d')}")
         print(f"  Context size: {len(context_data)} days")
 
-        # Predict single day
-        forecast = predict_single_day(pipeline, context_data, target_column, covariate_columns, context_length)
+        forecast = predict_single_day(pipeline, context_data, covariate_columns, context_length)
 
-        # Get median prediction
         median_idx = quantile_levels.index(0.5)
         median_pred = forecast[median_idx]
 
-        # Calculate directions
         predicted_direction = get_direction(median_pred, previous_actual)
         actual_direction = get_direction(actual_value, previous_actual)
 
-        # Store results
         rolling_forecasts.append(forecast)
         actual_values.append(actual_value)
         previous_actual_values.append(previous_actual)
         test_dates.append(prediction_date)
 
-        # Calculate error
         error = actual_value - median_pred
-
-        # Display with classification
         correct = "✓" if predicted_direction == actual_direction else "✗"
         print(f"  Previous: ${previous_actual:.2f}")
         print(f"  Actual: ${actual_value:.2f}, Predicted: ${median_pred:.2f}, Error: ${error:.2f}")
         print(f"  Direction - Predicted: {predicted_direction}, Actual: {actual_direction} {correct}")
 
-    # Convert to arrays
     rolling_forecasts = np.array(rolling_forecasts)
     actual_values = np.array(actual_values)
     previous_actual_values = np.array(previous_actual_values)
@@ -260,42 +255,33 @@ def plot_forecast(combined_data, test_start_idx, forecasts, actual_values, test_
     """Plot time series forecast vs actual with direction-based coloring."""
     fig, ax = plt.subplots(figsize=(14, 6))
 
-    target_column = config['data']['target_column']
     quantile_levels = config['forecast']['quantile_levels']
 
-    # Get historical data for context (last 14 days before test period)
     historical_data = combined_data.iloc[test_start_idx - 14:test_start_idx]
     historical_dates = historical_data.index
-    historical_prices = historical_data[target_column].values
+    historical_prices = historical_data['target'].values
 
     median_idx = quantile_levels.index(0.5)
     median_forecasts = forecasts[:, median_idx]
 
-    # Plot historical data
     ax.plot(historical_dates, historical_prices, label='Historical Data',
             color='blue', linewidth=2, marker='o', markersize=4)
-
-    # Plot actual values
     ax.plot(test_dates, actual_values, label='Actual',
             color='darkblue', linewidth=2.5, marker='D', markersize=5)
 
-    # Plot predicted values with dynamic colors based on direction
     predicted_dirs = metrics['predicted_directions']
-
-    # Plot connecting line (gray dashed)
     ax.plot(test_dates, median_forecasts, color='gray', linewidth=1.5,
             linestyle='--', alpha=0.5, zorder=1)
 
-    # Plot each prediction point with color based on direction
     for i, (date, pred, direction) in enumerate(zip(test_dates, median_forecasts, predicted_dirs)):
         color = 'green' if direction == 'UP' else 'red'
         label = f'Predicted {direction}' if i == 0 or (i > 0 and direction != predicted_dirs[i-1]) else None
         ax.scatter(date, pred, color=color, s=75, marker='s',
                   edgecolor='black', linewidth=1, zorder=3, label=label)
 
+    covariate_str = ", ".join(config['data']['covariate_columns'])
     ax.set_xlabel('Date', fontsize=12)
     ax.set_ylabel('Cotton Futures Price (USD)', fontsize=12)
-    covariate_str = ", ".join(config['data']['covariate_columns']) if config['data']['covariate_columns'] else "None"
     ax.set_title(f'{config["experiment"]["name"]}: Rolling Forecast vs Actual\n' +
                  f'Covariates: {covariate_str}\n' +
                  '(Prediction colors: Green=UP, Red=DOWN)',
@@ -306,7 +292,6 @@ def plot_forecast(combined_data, test_start_idx, forecasts, actual_values, test_
 
     plt.tight_layout()
 
-    # Save plot
     output_dir = config['output']['output_dir']
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, 'forecast_plot.png')
@@ -322,7 +307,6 @@ def plot_metrics_chart(forecasts, actual_values, test_dates, metrics, config):
     median_idx = quantile_levels.index(0.5)
     median_forecasts = forecasts[:, median_idx]
 
-    # Plot 1: Regression error analysis
     errors = actual_values - median_forecasts
     error_colors = ['green' if e > 0 else 'red' for e in errors]
 
@@ -335,7 +319,6 @@ def plot_metrics_chart(forecasts, actual_values, test_dates, metrics, config):
     ax1.set_xticklabels([d.strftime('%m-%d') for d in test_dates], rotation=45)
     ax1.grid(True, alpha=0.3, axis='y')
 
-    # Plot 2: Classification analysis (direction prediction)
     predicted_dirs = metrics['predicted_directions']
     actual_dirs = metrics['actual_directions']
     correct = [1 if p == a else 0 for p, a in zip(predicted_dirs, actual_dirs)]
@@ -354,7 +337,6 @@ def plot_metrics_chart(forecasts, actual_values, test_dates, metrics, config):
     ax2.set_yticklabels(['Incorrect', 'Correct'])
     ax2.grid(True, alpha=0.3, axis='y')
 
-    # Add direction labels on bars
     for i, (pred, actual, corr) in enumerate(zip(predicted_dirs, actual_dirs, correct)):
         label = f"{pred}\n({actual})"
         y_pos = 0.5
@@ -363,7 +345,6 @@ def plot_metrics_chart(forecasts, actual_values, test_dates, metrics, config):
 
     plt.tight_layout()
 
-    # Save plot
     output_dir = config['output']['output_dir']
     output_path = os.path.join(output_dir, 'metrics_plot.png')
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
@@ -371,54 +352,68 @@ def plot_metrics_chart(forecasts, actual_values, test_dates, metrics, config):
     plt.close()
 
 def main():
-    # Load configuration
-    config = load_config()
+    # Check for config file argument
+    if len(sys.argv) != 2:
+        print("Usage: python evaluate.py <config_path>")
+        print("Example: python evaluate.py 2covariates/config.yaml")
+        sys.exit(1)
 
-    # Create output directory
+    config_path = sys.argv[1]
+
+    # Load configuration
+    config = load_config(config_path)
+
+    # Get checkpoint directory
+    checkpoint_dir = config['output']['checkpoint_dir']
+    checkpoint_path = os.path.join(checkpoint_dir, "finetuned-ckpt")
+
+    if not os.path.exists(checkpoint_path):
+        print(f"Error: Checkpoint not found at {checkpoint_path}")
+        print(f"Please run training first: python train.py {config_path}")
+        sys.exit(1)
+
     output_dir = config['output']['output_dir']
     os.makedirs(output_dir, exist_ok=True)
 
     # Redirect output to file
-    output_file = os.path.join(output_dir, 'output.txt')
+    output_file = os.path.join(output_dir, 'evaluation_output.txt')
     original_stdout = sys.stdout
 
     with open(output_file, 'w', encoding='utf-8') as f:
         sys.stdout = f
 
         print("="*80)
-        print(f"{config['experiment']['name']}")
+        print(f"{config['experiment']['name']} - Evaluation")
         print(f"{config['experiment']['description']}")
         print("="*80)
 
-        # Load unified data
-        combined_data = load_unified_data(config)
+        # Load and prepare data
+        combined_df = load_unified_data(config)
+        data = prepare_data_for_training(combined_df, config)
 
-        # Define test period (last prediction_days days)
+        # Split into train and test
         prediction_days = config['forecast']['prediction_days']
-        test_start_idx = len(combined_data) - prediction_days
-        test_dates = combined_data.index[test_start_idx:]
+        train_data, test_data = split_train_test(data, test_size=prediction_days)
 
-        print(f"\nTrain period: {combined_data.index[0].strftime('%Y-%m-%d')} to " +
-              f"{combined_data.index[test_start_idx - 1].strftime('%Y-%m-%d')}")
-        print(f"Test period:  {test_dates[0].strftime('%Y-%m-%d')} to " +
-              f"{test_dates[-1].strftime('%Y-%m-%d')}")
-        print(f"Train size: {test_start_idx} days")
-        print(f"Test size:  {prediction_days} days")
+        # Prepare full data for rolling evaluation
+        full_data = pd.concat([train_data, test_data])
+        test_start_idx = len(full_data) - prediction_days
 
-        # Load model
-        model_name = config['model']['name']
-        print(f"\nLoading Chronos-2 model: {model_name}")
+        print(f"\nTest period: {test_data.index[0].strftime('%Y-%m-%d')} to {test_data.index[-1].strftime('%Y-%m-%d')}")
+        print(f"Test size: {prediction_days} days")
 
+        # Load fine-tuned model
+        print(f"\nLoading fine-tuned model from: {checkpoint_path}")
         torch_dtype = getattr(torch, config['model']['torch_dtype'])
-        pipeline = Chronos2Pipeline.from_pretrained(
-            model_name,
+        finetuned_pipeline = Chronos2Pipeline.from_pretrained(
+            checkpoint_path,
             device_map=config['model']['device_map'],
             torch_dtype=torch_dtype,
         )
 
-        # Run rolling forecast
+        # Run rolling forecast on test set
         rolling_forecasts, actual_values, previous_actual_values, test_dates = run_rolling_forecast(
-            pipeline, combined_data, test_start_idx, config
+            finetuned_pipeline, full_data, test_start_idx, config
         )
 
         # Calculate metrics
@@ -429,49 +424,41 @@ def main():
         print_metrics(metrics, actual_values, test_dates)
 
         print("\nDone!")
-        covariate_count = len(config['data']['covariate_columns'])
-        if covariate_count == 0:
-            print("\nNOTE: This zero-shot univariate forecast uses only historical cotton prices")
-            print("      without any covariates or fine-tuning.")
-        else:
-            print(f"\nNOTE: This zero-shot multivariate forecast uses {covariate_count} covariates:")
-            for cov in config['data']['covariate_columns']:
-                print(f"      - {cov}")
-            print("      Model is pretrained (no fine-tuning).")
 
     # Restore stdout
     sys.stdout = original_stdout
-    print(f"Output saved to: {output_file}")
+    print(f"Evaluation output saved to: {output_file}")
 
-    # Generate plots (not captured in text output)
+    # Generate plots
     if config['output']['save_plots']:
         print("Generating plots...")
-        combined_data = load_unified_data(config)
-        prediction_days = config['forecast']['prediction_days']
-        test_start_idx = len(combined_data) - prediction_days
-        test_dates = combined_data.index[test_start_idx:]
 
-        # Load model for plotting
+        # Reload data for plotting
+        combined_df = load_unified_data(config)
+        data = prepare_data_for_training(combined_df, config)
+        train_data, test_data = split_train_test(data, test_size=prediction_days)
+        full_data = pd.concat([train_data, test_data])
+        test_start_idx = len(full_data) - prediction_days
+
+        # Load model
         torch_dtype = getattr(torch, config['model']['torch_dtype'])
-        pipeline = Chronos2Pipeline.from_pretrained(
-            config['model']['name'],
+        finetuned_pipeline = Chronos2Pipeline.from_pretrained(
+            checkpoint_path,
             device_map=config['model']['device_map'],
             torch_dtype=torch_dtype,
         )
 
-        # Run forecast again for plots
         rolling_forecasts, actual_values, previous_actual_values, test_dates = run_rolling_forecast(
-            pipeline, combined_data, test_start_idx, config
+            finetuned_pipeline, full_data, test_start_idx, config
         )
 
         metrics = calculate_metrics(rolling_forecasts, actual_values, previous_actual_values,
                                     config['forecast']['quantile_levels'])
 
-        # Generate plots
-        plot_forecast(combined_data, test_start_idx, rolling_forecasts, actual_values, test_dates, metrics, config)
+        plot_forecast(full_data, test_start_idx, rolling_forecasts, actual_values, test_dates, metrics, config)
         plot_metrics_chart(rolling_forecasts, actual_values, test_dates, metrics, config)
 
-    print(f"\nAll results saved to: {config['output']['output_dir']}/")
+    print(f"All results saved to: {output_dir}/")
 
 if __name__ == "__main__":
     main()

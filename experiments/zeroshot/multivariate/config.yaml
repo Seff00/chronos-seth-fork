@@ -24,6 +24,6 @@ forecast:
   quantile_levels: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
 output:
-  output_dir: "./experiments/zeroshot/multivariate/results"
+  output_dir: "multivariate/results"
   save_plots: true
   save_metrics: true

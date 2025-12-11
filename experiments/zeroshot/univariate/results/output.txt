@@ -1,0 +1,23 @@
+================================================================================
+zeroshot_univariate
+Zero-shot rolling forecast using only historical cotton prices
+================================================================================
+Loading unified commodity dataset...
+Total data: 2511 days
+Date range: 2015-12-01 to 2025-11-28
+Target: Cotton_Futures_Close
+Covariates: None (univariate)
+
+Train period: 2015-12-01 to 2025-10-16
+Test period:  2025-10-17 to 2025-11-28
+Train size: 2481 days (train+val combined)
+Test size:  30 days
+
+Loading Chronos-2 model: amazon/chronos-2
+
+================================================================================
+Running Rolling Forecast...
+================================================================================
+
+Day 1/30: Predicting 2025-10-17
+  Context size: 2481 days

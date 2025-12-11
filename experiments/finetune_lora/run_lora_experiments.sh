@@ -3,6 +3,10 @@
 # Experiment 1: 2 covariates (Crude Oil + Copper)
 # Experiment 2: All covariates
 
+# Change to the finetune_lora experiments directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$SCRIPT_DIR"
+
 echo "=================================="
 echo "LoRA Fine-Tuning Experiments"
 echo "=================================="
@@ -17,13 +21,19 @@ fi
 # Run Experiment 1: 2 Covariates
 echo "Starting Experiment 1: 2 Covariates (Crude Oil + Copper)"
 echo "----------------------------------"
-cd 2covariates
-python train.py
+echo "Step 1/2: Training..."
+python train.py 2covariates/config.yaml
 if [ $? -ne 0 ]; then
-    echo "Error: Experiment 1 failed!"
+    echo "Error: Experiment 1 training failed!"
     exit 1
 fi
-cd ..
+echo ""
+echo "Step 2/2: Evaluating..."
+python evaluate.py 2covariates/config.yaml
+if [ $? -ne 0 ]; then
+    echo "Error: Experiment 1 evaluation failed!"
+    exit 1
+fi
 echo ""
 echo "Experiment 1 completed successfully!"
 echo ""
@@ -34,13 +44,19 @@ sleep 2
 # Run Experiment 2: All Covariates
 echo "Starting Experiment 2: All Covariates"
 echo "----------------------------------"
-cd allcovariates
-python train.py
+echo "Step 1/2: Training..."
+python train.py allcovariates/config.yaml
 if [ $? -ne 0 ]; then
-    echo "Error: Experiment 2 failed!"
+    echo "Error: Experiment 2 training failed!"
     exit 1
 fi
-cd ..
+echo ""
+echo "Step 2/2: Evaluating..."
+python evaluate.py allcovariates/config.yaml
+if [ $? -ne 0 ]; then
+    echo "Error: Experiment 2 evaluation failed!"
+    exit 1
+fi
 echo ""
 echo "Experiment 2 completed successfully!"
 echo ""
