@@ -15,7 +15,7 @@ import json
 # Configuration
 DATA_PATH = r"C:\Users\Seth\Desktop\AIAP\proj\commodity-forecasting\data\processed"
 MODEL_PATH = r"experiments\finetune_lora\allcovariates\results\checkpoint\finetuned-ckpt"
-OUTPUT_DIR = r"experiments\ablation_study\results"
+OUTPUT_DIR = r"experiments\finetune_lora\ablation_study\results"
 
 # Target and Covariates
 TARGET_COLUMN = "Cotton_Futures_Close"
@@ -367,8 +367,8 @@ def plot_ablation_results(all_results):
     rmse_deltas = [rmse - baseline_rmse for rmse in rmse_values]
     acc_deltas = [(acc/100 - baseline_acc) * 100 for acc in acc_values]
 
-    # Create figure with constrained layout instead of tight_layout
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 9), constrained_layout=True)
+    # Create figure with wider layout to avoid cramping
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 10), constrained_layout=True)
 
     # Plot 1: RMSE Change
     colors1 = ['red' if d > 0 else 'green' for d in rmse_deltas]
