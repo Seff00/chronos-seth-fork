@@ -23,7 +23,7 @@ Test set: 30 days (1.2%)
 ================================================================================
 Generated 2116 training samples (sliding windows with context_length=365)
 
-Loading pretrained model: amazon/chronos-2
+Loading pretrained model: allcovariates/results/checkpoint/finetuned-ckpt
 
 ================================================================================
 FINE-TUNING CONFIGURATION
@@ -38,12 +38,12 @@ Output Directory:  allcovariates/results/checkpoint
 ================================================================================
 
 Starting LoRA fine-tuning...
-{'loss': 0.0212, 'grad_norm': 0.0429692417383194, 'learning_rate': 8.020000000000001e-06, 'epoch': 0.2}
-{'loss': 0.0182, 'grad_norm': 0.01767911948263645, 'learning_rate': 6.02e-06, 'epoch': 0.4}
-{'loss': 0.0193, 'grad_norm': 0.014629285782575607, 'learning_rate': 4.0200000000000005e-06, 'epoch': 0.6}
-{'loss': 0.0185, 'grad_norm': 0.016248732805252075, 'learning_rate': 2.02e-06, 'epoch': 0.8}
-{'loss': 0.0204, 'grad_norm': 0.020147690549492836, 'learning_rate': 2e-08, 'epoch': 1.0}
-{'train_runtime': 2322.6864, 'train_samples_per_second': 55.109, 'train_steps_per_second': 0.215, 'train_loss': 0.019495036602020264, 'epoch': 1.0}
+{'loss': 0.0209, 'grad_norm': 0.04472178593277931, 'learning_rate': 8.020000000000001e-06, 'epoch': 0.2}
+{'loss': 0.018, 'grad_norm': 0.01588061824440956, 'learning_rate': 6.02e-06, 'epoch': 0.4}
+{'loss': 0.0192, 'grad_norm': 0.01261412538588047, 'learning_rate': 4.0200000000000005e-06, 'epoch': 0.6}
+{'loss': 0.0183, 'grad_norm': 0.01466661598533392, 'learning_rate': 2.02e-06, 'epoch': 0.8}
+{'loss': 0.0203, 'grad_norm': 0.01687454991042614, 'learning_rate': 2e-08, 'epoch': 1.0}
+{'train_runtime': 1844.4611, 'train_samples_per_second': 69.397, 'train_steps_per_second': 0.271, 'train_loss': 0.01933335256576538, 'epoch': 1.0}
 
 ================================================================================
 FINE-TUNING COMPLETED SUCCESSFULLY!

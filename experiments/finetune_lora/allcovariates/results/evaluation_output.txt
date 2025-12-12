@@ -100,8 +100,8 @@ Day 13/30: Predicting 2025-11-04
 Day 14/30: Predicting 2025-11-05
   Context size: 2494 days
   Previous: $65.20
-  Actual: $65.23, Predicted: $65.00, Error: $0.23
-  Direction - Predicted: DOWN, Actual: UP ✗
+  Actual: $65.23, Predicted: $65.50, Error: $-0.27
+  Direction - Predicted: UP, Actual: UP ✓
 
 Day 15/30: Predicting 2025-11-06
   Context size: 2495 days
@@ -136,13 +136,13 @@ Day 19/30: Predicting 2025-11-12
 Day 20/30: Predicting 2025-11-13
   Context size: 2500 days
   Previous: $63.30
-  Actual: $62.90, Predicted: $63.50, Error: $-0.60
+  Actual: $62.90, Predicted: $63.75, Error: $-0.85
   Direction - Predicted: UP, Actual: DOWN ✗
 
 Day 21/30: Predicting 2025-11-14
   Context size: 2501 days
   Previous: $62.90
-  Actual: $62.49, Predicted: $63.00, Error: $-0.51
+  Actual: $62.49, Predicted: $63.25, Error: $-0.76
   Direction - Predicted: UP, Actual: DOWN ✗
 
 Day 22/30: Predicting 2025-11-17
@@ -184,7 +184,7 @@ Day 27/30: Predicting 2025-11-24
 Day 28/30: Predicting 2025-11-25
   Context size: 2508 days
   Previous: $61.44
-  Actual: $62.43, Predicted: $61.50, Error: $0.93
+  Actual: $62.43, Predicted: $61.75, Error: $0.68
   Direction - Predicted: UP, Actual: UP ✓
 
 Day 29/30: Predicting 2025-11-26
@@ -204,19 +204,19 @@ Day 30/30: Predicting 2025-11-28
 ================================================================================
 REGRESSION METRICS
 ================================================================================
-Mean Absolute Error (MAE):       $0.4733
-Mean Squared Error (MSE):        $0.3206
-Root Mean Squared Error (RMSE):  $0.5662
-Mean Absolute Percentage Error:  0.74%
+Mean Absolute Error (MAE):       $0.4830
+Mean Squared Error (MSE):        $0.3305
+Root Mean Squared Error (RMSE):  $0.5749
+Mean Absolute Percentage Error:  0.76%
 ================================================================================
 
 ================================================================================
 CLASSIFICATION METRICS (Direction Prediction: UP vs DOWN)
 ================================================================================
-Accuracy:   0.4333 (43.33%)
-Precision:  0.4706 (47.06%)
-Recall:     0.5000 (50.00%)
-F1-Score:   0.4848
+Accuracy:   0.4667 (46.67%)
+Precision:  0.5000 (50.00%)
+Recall:     0.5625 (56.25%)
+F1-Score:   0.5294
 ================================================================================
 Note: Positive class = UP, Negative class = DOWN
 
@@ -238,21 +238,21 @@ Date         Actual     Predicted  Error      Error %    Pred Dir   Actual Dir  
 2025-10-31   $65.54     $65.00     $0.54      0.82     % DOWN       UP          ✗       
 2025-11-03   $65.68     $65.50     $0.18      0.27     % DOWN       UP          ✗       
 2025-11-04   $65.20     $65.50     $-0.30     -0.46    % DOWN       DOWN        ✓       
-2025-11-05   $65.23     $65.00     $0.23      0.35     % DOWN       UP          ✗       
+2025-11-05   $65.23     $65.50     $-0.27     -0.41    % UP         UP          ✓       
 2025-11-06   $64.54     $65.00     $-0.46     -0.71    % DOWN       DOWN        ✓       
 2025-11-07   $63.62     $64.50     $-0.88     -1.38    % DOWN       DOWN        ✓       
 2025-11-10   $64.31     $64.00     $0.31      0.48     % UP         UP          ✓       
 2025-11-11   $63.88     $64.50     $-0.62     -0.97    % UP         DOWN        ✗       
 2025-11-12   $63.30     $64.00     $-0.70     -1.11    % UP         DOWN        ✗       
-2025-11-13   $62.90     $63.50     $-0.60     -0.95    % UP         DOWN        ✗       
-2025-11-14   $62.49     $63.00     $-0.51     -0.82    % UP         DOWN        ✗       
+2025-11-13   $62.90     $63.75     $-0.85     -1.35    % UP         DOWN        ✗       
+2025-11-14   $62.49     $63.25     $-0.76     -1.22    % UP         DOWN        ✗       
 2025-11-17   $62.36     $62.75     $-0.39     -0.63    % UP         DOWN        ✗       
 2025-11-18   $62.57     $62.50     $0.07      0.11     % UP         UP          ✓       
 2025-11-19   $62.30     $62.75     $-0.45     -0.72    % UP         DOWN        ✗       
 2025-11-20   $61.68     $62.50     $-0.82     -1.33    % UP         DOWN        ✗       
 2025-11-21   $61.35     $62.00     $-0.65     -1.06    % UP         DOWN        ✗       
 2025-11-24   $61.44     $61.50     $-0.06     -0.10    % UP         UP          ✓       
-2025-11-25   $62.43     $61.50     $0.93      1.49     % UP         UP          ✓       
+2025-11-25   $62.43     $61.75     $0.68      1.09     % UP         UP          ✓       
 2025-11-26   $62.77     $62.75     $0.02      0.03     % UP         UP          ✓       
 2025-11-28   $62.91     $63.00     $-0.09     -0.14    % UP         UP          ✓       
 ================================================================================

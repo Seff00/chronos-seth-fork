@@ -26,7 +26,7 @@ model:
 training:
   finetune_mode: "lora"
   learning_rate: 0.00001  # 1e-5
-  num_steps: 500
+  num_steps: 1000
   batch_size: 256
   context_length: 365  # Use last year as context
   prediction_length: 1  # 1-day ahead

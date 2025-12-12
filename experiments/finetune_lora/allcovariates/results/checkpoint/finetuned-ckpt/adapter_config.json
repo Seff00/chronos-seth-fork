@@ -34,9 +34,9 @@
   "target_modules": [
     "self_attention.v",
     "self_attention.o",
+    "output_patch_embedding.output_layer",
     "self_attention.q",
-    "self_attention.k",
-    "output_patch_embedding.output_layer"
+    "self_attention.k"
   ],
   "target_parameters": null,
   "task_type": null,
