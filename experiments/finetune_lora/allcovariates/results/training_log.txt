@@ -23,14 +23,14 @@ Test set: 30 days (1.2%)
 ================================================================================
 Generated 2116 training samples (sliding windows with context_length=365)
 
-Loading pretrained model: allcovariates/results/checkpoint/finetuned-ckpt
+Loading pretrained model: amazon/chronos-2
 
 ================================================================================
 FINE-TUNING CONFIGURATION
 ================================================================================
 Mode:              LORA
-Learning Rate:     1e-05
-Training Steps:    500
+Learning Rate:     1e-06
+Training Steps:    1000
 Batch Size:        256
 Context Length:    365 days
 Prediction Length: 1 day(s)
@@ -38,12 +38,17 @@ Output Directory:  allcovariates/results/checkpoint
 ================================================================================
 
 Starting LoRA fine-tuning...
-{'loss': 0.0209, 'grad_norm': 0.04472178593277931, 'learning_rate': 8.020000000000001e-06, 'epoch': 0.2}
-{'loss': 0.018, 'grad_norm': 0.01588061824440956, 'learning_rate': 6.02e-06, 'epoch': 0.4}
-{'loss': 0.0192, 'grad_norm': 0.01261412538588047, 'learning_rate': 4.0200000000000005e-06, 'epoch': 0.6}
-{'loss': 0.0183, 'grad_norm': 0.01466661598533392, 'learning_rate': 2.02e-06, 'epoch': 0.8}
-{'loss': 0.0203, 'grad_norm': 0.01687454991042614, 'learning_rate': 2e-08, 'epoch': 1.0}
-{'train_runtime': 1844.4611, 'train_samples_per_second': 69.397, 'train_steps_per_second': 0.271, 'train_loss': 0.01933335256576538, 'epoch': 1.0}
+{'loss': 0.0212, 'grad_norm': 0.042981699109077454, 'learning_rate': 9.01e-07, 'epoch': 0.1}
+{'loss': 0.0183, 'grad_norm': 0.017420656979084015, 'learning_rate': 8.01e-07, 'epoch': 0.2}
+{'loss': 0.0194, 'grad_norm': 0.013303684070706367, 'learning_rate': 7.009999999999999e-07, 'epoch': 0.3}
+{'loss': 0.0186, 'grad_norm': 0.01608867384493351, 'learning_rate': 6.009999999999999e-07, 'epoch': 0.4}
+{'loss': 0.0205, 'grad_norm': 0.018504135310649872, 'learning_rate': 5.009999999999999e-07, 'epoch': 0.5}
+{'loss': 0.0194, 'grad_norm': 0.021596284583210945, 'learning_rate': 4.01e-07, 'epoch': 0.6}
+{'loss': 0.0193, 'grad_norm': 0.028188664466142654, 'learning_rate': 3.0099999999999996e-07, 'epoch': 0.7}
+{'loss': 0.0178, 'grad_norm': 0.0240780021995306, 'learning_rate': 2.01e-07, 'epoch': 0.8}
+{'loss': 0.019, 'grad_norm': 0.020550638437271118, 'learning_rate': 1.01e-07, 'epoch': 0.9}
+{'loss': 0.0194, 'grad_norm': 0.02426011674106121, 'learning_rate': 1e-09, 'epoch': 1.0}
+{'train_runtime': 4592.1246, 'train_samples_per_second': 55.748, 'train_steps_per_second': 0.218, 'train_loss': 0.019295039892196657, 'epoch': 1.0}
 
 ================================================================================
 FINE-TUNING COMPLETED SUCCESSFULLY!
