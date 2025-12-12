@@ -1,0 +1,57 @@
+================================================================================
+lora_allcovariates
+LoRA fine-tuning with all 8 covariates
+================================================================================
+Loading unified commodity dataset...
+Total data: 2511 days
+Date range: 2015-12-01 to 2025-11-28
+
+Prepared data with 2511 days
+Target: Cotton_Futures_Close
+Covariates (8): Crude_Oil_Close, Copper_Futures_Close, SP500_Close, Dollar_Index_Close, Cotton_Futures_High, Cotton_Futures_Low, Cotton_Futures_Open, Cotton_Futures_Volume
+
+================================================================================
+DATA SPLIT SUMMARY
+================================================================================
+Total data points: 2511 days
+Training set: 2481 days (98.8%)
+  From: 2015-12-01
+  To:   2025-10-16
+Test set: 30 days (1.2%)
+  From: 2025-10-17
+  To:   2025-11-28
+================================================================================
+Generated 2116 training samples (sliding windows with context_length=365)
+
+Loading pretrained model: amazon/chronos-2
+
+================================================================================
+FINE-TUNING CONFIGURATION
+================================================================================
+Mode:              LORA
+Learning Rate:     1e-05
+Training Steps:    500
+Batch Size:        256
+Context Length:    365 days
+Prediction Length: 1 day(s)
+Output Directory:  allcovariates/results/checkpoint
+================================================================================
+
+Starting LoRA fine-tuning...
+{'loss': 0.0212, 'grad_norm': 0.0429692417383194, 'learning_rate': 8.020000000000001e-06, 'epoch': 0.2}
+{'loss': 0.0182, 'grad_norm': 0.01767911948263645, 'learning_rate': 6.02e-06, 'epoch': 0.4}
+{'loss': 0.0193, 'grad_norm': 0.014629285782575607, 'learning_rate': 4.0200000000000005e-06, 'epoch': 0.6}
+{'loss': 0.0185, 'grad_norm': 0.016248732805252075, 'learning_rate': 2.02e-06, 'epoch': 0.8}
+{'loss': 0.0204, 'grad_norm': 0.020147690549492836, 'learning_rate': 2e-08, 'epoch': 1.0}
+{'train_runtime': 2322.6864, 'train_samples_per_second': 55.109, 'train_steps_per_second': 0.215, 'train_loss': 0.019495036602020264, 'epoch': 1.0}
+
+================================================================================
+FINE-TUNING COMPLETED SUCCESSFULLY!
+================================================================================
+Model checkpoint saved to: allcovariates/results/checkpoint/finetuned-ckpt
+
+Next steps:
+  1. Run evaluation: python evaluate.py <config_path>
+     Example: python evaluate.py allcovariates/config.yaml
+
+================================================================================
