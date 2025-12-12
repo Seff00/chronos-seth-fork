@@ -33,7 +33,7 @@ ALL_COVARIATES = [
 # Forecasting Configuration
 PREDICTION_DAYS = 30
 CONTEXT_LENGTH = 365
-QUANTILE_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+# Note: Quantiles are determined by the model, not hardcoded here
 
 def load_unified_data():
     """Load the unified commodity dataset."""
@@ -81,7 +81,7 @@ def calculate_classification_metrics(predicted_directions, actual_directions):
         'f1_score': f1
     }
 
-def predict_single_day(pipeline, context_data, covariate_columns):
+def predict_single_day(pipeline, context_data, covariate_columns, median_idx):
     """Predict a single day using context data."""
     context = context_data.tail(CONTEXT_LENGTH)
     target = context['target'].values
@@ -106,6 +106,18 @@ def predict_single_day(pipeline, context_data, covariate_columns):
 
 def run_rolling_forecast(pipeline, combined_data, test_start_idx, covariate_columns):
     """Run rolling 1-day ahead forecasting on test set."""
+    # Get model's actual quantiles
+    model_quantiles = pipeline.quantiles
+    try:
+        median_idx = list(model_quantiles).index(0.5)
+    except ValueError:
+        # If exact 0.5 not found, find closest
+        median_idx = min(range(len(model_quantiles)), key=lambda i: abs(model_quantiles[i] - 0.5))
+        print(f"Warning: Using quantile {model_quantiles[median_idx]:.3f} as median (0.5 not found)")
+
+    print(f"Model quantiles: {model_quantiles}")
+    print(f"Using median index: {median_idx} (quantile: {model_quantiles[median_idx]})")
+
     rolling_forecasts = []
     actual_values = []
     previous_actual_values = []
@@ -121,9 +133,8 @@ def run_rolling_forecast(pipeline, combined_data, test_start_idx, covariate_colu
         previous_actual = combined_data['target'].iloc[current_idx - 1]
 
         # Predict single day
-        forecast = predict_single_day(pipeline, context_data, covariate_columns)
+        forecast = predict_single_day(pipeline, context_data, covariate_columns, median_idx)
 
-        median_idx = QUANTILE_LEVELS.index(0.5)
         median_pred = forecast[median_idx]
 
         rolling_forecasts.append(forecast)
@@ -135,11 +146,10 @@ def run_rolling_forecast(pipeline, combined_data, test_start_idx, covariate_colu
     actual_values = np.array(actual_values)
     previous_actual_values = np.array(previous_actual_values)
 
-    return rolling_forecasts, actual_values, previous_actual_values, test_dates
+    return rolling_forecasts, actual_values, previous_actual_values, test_dates, median_idx
 
-def calculate_metrics(forecasts, actual_values, previous_actual_values):
+def calculate_metrics(forecasts, actual_values, previous_actual_values, median_idx):
     """Calculate regression error metrics and classification metrics."""
-    median_idx = QUANTILE_LEVELS.index(0.5)
     median_forecasts = forecasts[:, median_idx]
 
     # Regression metrics
@@ -213,12 +223,12 @@ def run_ablation_experiment(excluded_covariate=None):
 
     # Run rolling forecast
     print(f"Running rolling forecast on {PREDICTION_DAYS} days...")
-    rolling_forecasts, actual_values, previous_actual_values, test_dates = run_rolling_forecast(
+    rolling_forecasts, actual_values, previous_actual_values, test_dates, median_idx = run_rolling_forecast(
         pipeline, combined_data, test_start_idx, covariate_columns
     )
 
     # Calculate metrics
-    metrics = calculate_metrics(rolling_forecasts, actual_values, previous_actual_values)
+    metrics = calculate_metrics(rolling_forecasts, actual_values, previous_actual_values, median_idx)
 
     print(f"\nResults for {experiment_name}:")
     print(f"  RMSE: ${metrics['rmse']:.4f}")
@@ -357,45 +367,43 @@ def plot_ablation_results(all_results):
     rmse_deltas = [rmse - baseline_rmse for rmse in rmse_values]
     acc_deltas = [(acc/100 - baseline_acc) * 100 for acc in acc_values]
 
-    # Create figure
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
+    # Create figure with constrained layout instead of tight_layout
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 9), constrained_layout=True)
 
     # Plot 1: RMSE Change
     colors1 = ['red' if d > 0 else 'green' for d in rmse_deltas]
     bars1 = ax1.barh(excluded_names, rmse_deltas, color=colors1, alpha=0.7)
     ax1.axvline(x=0, color='black', linestyle='-', linewidth=2)
-    ax1.set_xlabel('Δ RMSE (Excluded - Baseline)', fontsize=12)
+    ax1.set_xlabel('Δ RMSE (Excluded - Baseline)', fontsize=11)
     ax1.set_title('Impact of Removing Each Covariate on RMSE\n(Positive = Performance Degradation = Important Feature)',
-                 fontsize=14, fontweight='bold')
+                 fontsize=12, fontweight='bold')
     ax1.grid(True, alpha=0.3, axis='x')
 
     # Add value labels
     for i, (bar, delta) in enumerate(zip(bars1, rmse_deltas)):
-        x_pos = delta + (0.01 if delta > 0 else -0.01)
+        x_pos = delta + (0.005 if delta > 0 else -0.005)
         ha = 'left' if delta > 0 else 'right'
         ax1.text(x_pos, bar.get_y() + bar.get_height()/2, f'${delta:+.4f}',
-                ha=ha, va='center', fontweight='bold', fontsize=9)
+                ha=ha, va='center', fontweight='bold', fontsize=8)
 
     # Plot 2: Accuracy Change
     colors2 = ['green' if d > 0 else 'red' for d in acc_deltas]
     bars2 = ax2.barh(excluded_names, acc_deltas, color=colors2, alpha=0.7)
     ax2.axvline(x=0, color='black', linestyle='-', linewidth=2)
-    ax2.set_xlabel('Δ Accuracy (Excluded - Baseline)', fontsize=12)
+    ax2.set_xlabel('Δ Accuracy % (Excluded - Baseline)', fontsize=11)
     ax2.set_title('Impact of Removing Each Covariate on Direction Accuracy\n(Positive = Performance Improvement)',
-                 fontsize=14, fontweight='bold')
+                 fontsize=12, fontweight='bold')
     ax2.grid(True, alpha=0.3, axis='x')
 
     # Add value labels
     for i, (bar, delta) in enumerate(zip(bars2, acc_deltas)):
-        x_pos = delta + (0.5 if delta > 0 else -0.5)
+        x_pos = delta + (0.3 if delta > 0 else -0.3)
         ha = 'left' if delta > 0 else 'right'
         ax2.text(x_pos, bar.get_y() + bar.get_height()/2, f'{delta:+.1f}%',
-                ha=ha, va='center', fontweight='bold', fontsize=9)
-
-    plt.tight_layout()
+                ha=ha, va='center', fontweight='bold', fontsize=8)
 
     plot_path = os.path.join(OUTPUT_DIR, 'ablation_results.png')
-    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+    plt.savefig(plot_path, dpi=200, bbox_inches='tight')
     print(f"Plot saved to: {plot_path}")
     plt.close()
 

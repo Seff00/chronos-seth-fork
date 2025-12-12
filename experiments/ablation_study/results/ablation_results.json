@@ -1,0 +1,201 @@
+[
+  {
+    "experiment_name": "baseline_all_covariates",
+    "excluded_covariate": null,
+    "num_covariates": 8,
+    "covariates_used": [
+      "Crude_Oil_Close",
+      "Copper_Futures_Close",
+      "SP500_Close",
+      "Dollar_Index_Close",
+      "Cotton_Futures_High",
+      "Cotton_Futures_Low",
+      "Cotton_Futures_Open",
+      "Cotton_Futures_Volume"
+    ],
+    "mae": 0.4829998016357427,
+    "mse": 0.3305298958366623,
+    "rmse": 0.5749172947795729,
+    "mape": 0.7572487194284746,
+    "accuracy": 0.4666666666666667,
+    "precision": 0.5,
+    "recall": 0.5625,
+    "f1_score": 0.5294117647058824
+  },
+  {
+    "experiment_name": "exclude_CrudeOilClose",
+    "excluded_covariate": "Crude_Oil_Close",
+    "num_covariates": 7,
+    "covariates_used": [
+      "Copper_Futures_Close",
+      "SP500_Close",
+      "Dollar_Index_Close",
+      "Cotton_Futures_High",
+      "Cotton_Futures_Low",
+      "Cotton_Futures_Open",
+      "Cotton_Futures_Volume"
+    ],
+    "mae": 0.49966646830240935,
+    "mse": 0.3570298983797938,
+    "rmse": 0.5975197891114518,
+    "mape": 0.7830853142930647,
+    "accuracy": 0.43333333333333335,
+    "precision": 0.47368421052631576,
+    "recall": 0.5625,
+    "f1_score": 0.5142857142857142
+  },
+  {
+    "experiment_name": "exclude_CopperFuturesClose",
+    "excluded_covariate": "Copper_Futures_Close",
+    "num_covariates": 7,
+    "covariates_used": [
+      "Crude_Oil_Close",
+      "SP500_Close",
+      "Dollar_Index_Close",
+      "Cotton_Futures_High",
+      "Cotton_Futures_Low",
+      "Cotton_Futures_Open",
+      "Cotton_Futures_Volume"
+    ],
+    "mae": 0.4829998016357427,
+    "mse": 0.3305298958366623,
+    "rmse": 0.5749172947795729,
+    "mape": 0.7572487194284746,
+    "accuracy": 0.4666666666666667,
+    "precision": 0.5,
+    "recall": 0.5625,
+    "f1_score": 0.5294117647058824
+  },
+  {
+    "experiment_name": "exclude_SP500Close",
+    "excluded_covariate": "SP500_Close",
+    "num_covariates": 7,
+    "covariates_used": [
+      "Crude_Oil_Close",
+      "Copper_Futures_Close",
+      "Dollar_Index_Close",
+      "Cotton_Futures_High",
+      "Cotton_Futures_Low",
+      "Cotton_Futures_Open",
+      "Cotton_Futures_Volume"
+    ],
+    "mae": 0.5066664377848312,
+    "mse": 0.34894655487393444,
+    "rmse": 0.590716983735811,
+    "mape": 0.7941352431085971,
+    "accuracy": 0.43333333333333335,
+    "precision": 0.47368421052631576,
+    "recall": 0.5625,
+    "f1_score": 0.5142857142857142
+  },
+  {
+    "experiment_name": "exclude_DollarIndexClose",
+    "excluded_covariate": "Dollar_Index_Close",
+    "num_covariates": 7,
+    "covariates_used": [
+      "Crude_Oil_Close",
+      "Copper_Futures_Close",
+      "SP500_Close",
+      "Cotton_Futures_High",
+      "Cotton_Futures_Low",
+      "Cotton_Futures_Open",
+      "Cotton_Futures_Volume"
+    ],
+    "mae": 0.48166669209798224,
+    "mse": 0.3326967074618251,
+    "rmse": 0.5767986715153088,
+    "mape": 0.7552178300545805,
+    "accuracy": 0.43333333333333335,
+    "precision": 0.47058823529411764,
+    "recall": 0.5,
+    "f1_score": 0.48484848484848486
+  },
+  {
+    "experiment_name": "exclude_CottonFuturesHigh",
+    "excluded_covariate": "Cotton_Futures_High",
+    "num_covariates": 7,
+    "covariates_used": [
+      "Crude_Oil_Close",
+      "Copper_Futures_Close",
+      "SP500_Close",
+      "Dollar_Index_Close",
+      "Cotton_Futures_Low",
+      "Cotton_Futures_Open",
+      "Cotton_Futures_Volume"
+    ],
+    "mae": 0.4803333282470708,
+    "mse": 0.3125300560539475,
+    "rmse": 0.5590438766804869,
+    "mape": 0.7530192165311994,
+    "accuracy": 0.43333333333333335,
+    "precision": 0.47058823529411764,
+    "recall": 0.5,
+    "f1_score": 0.48484848484848486
+  },
+  {
+    "experiment_name": "exclude_CottonFuturesLow",
+    "excluded_covariate": "Cotton_Futures_Low",
+    "num_covariates": 7,
+    "covariates_used": [
+      "Crude_Oil_Close",
+      "Copper_Futures_Close",
+      "SP500_Close",
+      "Dollar_Index_Close",
+      "Cotton_Futures_High",
+      "Cotton_Futures_Open",
+      "Cotton_Futures_Volume"
+    ],
+    "mae": 0.4650000254313156,
+    "mse": 0.3071967278068772,
+    "rmse": 0.5542533065367109,
+    "mape": 0.7286210043701639,
+    "accuracy": 0.43333333333333335,
+    "precision": 0.47058823529411764,
+    "recall": 0.5,
+    "f1_score": 0.48484848484848486
+  },
+  {
+    "experiment_name": "exclude_CottonFuturesOpen",
+    "excluded_covariate": "Cotton_Futures_Open",
+    "num_covariates": 7,
+    "covariates_used": [
+      "Crude_Oil_Close",
+      "Copper_Futures_Close",
+      "SP500_Close",
+      "Dollar_Index_Close",
+      "Cotton_Futures_High",
+      "Cotton_Futures_Low",
+      "Cotton_Futures_Volume"
+    ],
+    "mae": 0.4803333282470708,
+    "mse": 0.3195300255363694,
+    "rmse": 0.5652698696519826,
+    "mape": 0.7531082464404119,
+    "accuracy": 0.43333333333333335,
+    "precision": 0.47058823529411764,
+    "recall": 0.5,
+    "f1_score": 0.48484848484848486
+  },
+  {
+    "experiment_name": "exclude_CottonFuturesVolume",
+    "excluded_covariate": "Cotton_Futures_Volume",
+    "num_covariates": 7,
+    "covariates_used": [
+      "Crude_Oil_Close",
+      "Copper_Futures_Close",
+      "SP500_Close",
+      "Dollar_Index_Close",
+      "Cotton_Futures_High",
+      "Cotton_Futures_Low",
+      "Cotton_Futures_Open"
+    ],
+    "mae": 0.4900000254313156,
+    "mse": 0.3447799517855554,
+    "rmse": 0.5871796588656282,
+    "mape": 0.7674455257730532,
+    "accuracy": 0.4,
+    "precision": 0.4444444444444444,
+    "recall": 0.5,
+    "f1_score": 0.47058823529411764
+  }
+]

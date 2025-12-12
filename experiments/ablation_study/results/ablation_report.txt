@@ -1,0 +1,46 @@
+================================================================================
+ABLATION STUDY REPORT
+Systematically removing one covariate at a time
+================================================================================
+
+Model: experiments\finetune_lora\allcovariates\results\checkpoint\finetuned-ckpt
+Test Period: 30 days (rolling 1-day ahead)
+Total Covariates: 8
+
+================================================================================
+BASELINE (All Covariates)
+================================================================================
+RMSE:      $0.5749
+MAE:       $0.4830
+MAPE:      0.76%
+Accuracy:  46.67%
+Precision: 50.00%
+Recall:    56.25%
+F1-Score:  0.5294
+
+================================================================================
+ABLATION RESULTS (Excluding One Covariate at a Time)
+================================================================================
+
+Excluded Covariate             RMSE         Δ RMSE       Accuracy     Δ Acc        Impact    
+--------------------------------------------------------------------------------
+Crude_Oil_Close                $0.5975      $+0.0226     43.33      % -3.33%      MEDIUM    
+SP500_Close                    $0.5907      $+0.0158     43.33      % -3.33%      LOW       
+Cotton_Futures_Volume          $0.5872      $+0.0123     40.00      % -6.67%      LOW       
+Dollar_Index_Close             $0.5768      $+0.0019     43.33      % -3.33%      LOW       
+Copper_Futures_Close           $0.5749      $+0.0000     46.67      % +0.00%      LOW       
+Cotton_Futures_Open            $0.5653      $-0.0096     43.33      % -3.33%      LOW       
+Cotton_Futures_High            $0.5590      $-0.0159     43.33      % -3.33%      LOW       
+Cotton_Futures_Low             $0.5543      $-0.0207     43.33      % -3.33%      LOW       
+
+================================================================================
+INTERPRETATION
+================================================================================
+Δ RMSE > 0: Removing covariate WORSENS performance (important feature)
+Δ RMSE < 0: Removing covariate IMPROVES performance (noisy/redundant feature)
+Δ RMSE ≈ 0: Removing covariate has minimal impact
+
+Impact Levels:
+  HIGH:   Δ RMSE > $0.05 (critical feature)
+  MEDIUM: Δ RMSE > $0.02 (useful feature)
+  LOW:    Δ RMSE ≤ $0.02 (minimal contribution)
